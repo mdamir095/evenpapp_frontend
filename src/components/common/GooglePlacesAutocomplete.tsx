@@ -214,7 +214,6 @@ const GooglePlacesAutocomplete: React.FC<GooglePlacesAutocompleteProps> = ({
       
       <div className="relative">
         <Input
-          ref={inputRef}
           type="text"
           value={value}
           onChange={handleInputChange}

@@ -60,6 +60,24 @@ export const BookingList: React.FC = () => {
   const bookingState = useBooking();
   const { bookings = [], pagination, loading } = bookingState || {};
   
+  // Helper function to map BookingType to BookingRow
+  const mapBookingToRow = (booking: any): BookingRow => ({
+    id: booking.bookingId || booking.id || '',
+    bookingNumber: booking.bookingNumber || '',
+    customerName: booking.customer?.name || '',
+    customerEmail: booking.customer?.email || '',
+    serviceName: booking.services?.[0]?.name || '',
+    startDateTime: booking.startTime || booking.date || '',
+    endDateTime: booking.endTime || '',
+    status: booking.status || '',
+    amount: booking.totalAmount || booking.amount || 0,
+    createdAt: booking.createdAt || '',
+    assignedStaff: booking.assignedStaff || undefined,
+  });
+  
+  // Map bookings to table rows
+  const tableData = bookings.map(mapBookingToRow);
+  
   const { 
     getBookingList, 
     removeBooking, 
@@ -97,10 +115,10 @@ export const BookingList: React.FC = () => {
   // Table columns
   const columns = [
     {
-      key: 'bookingNumber',
-      title: 'Booking ID',
+      key: 'bookingNumber' as keyof BookingRow,
+      label: 'Booking ID',
       sortable: true,
-      render: (value: string, row: BookingRow) => (
+      render: (value: string | number | undefined, row: BookingRow, index: number) => (
         <button
           onClick={() => navigate(`/booking-management/${row.id}`)}
           className="text-blue-600 hover:text-blue-800 font-medium"
@@ -110,10 +128,10 @@ export const BookingList: React.FC = () => {
       ),
     },
     {
-      key: 'customerName',
-      title: 'Customer',
+      key: 'customerName' as keyof BookingRow,
+      label: 'Customer',
       sortable: true,
-      render: (value: string, row: BookingRow) => (
+      render: (value: string | number | undefined, row: BookingRow, index: number) => (
         <div>
           <div className="font-medium text-gray-900">{value}</div>
           <div className="text-sm text-gray-500">{row.customerEmail}</div>
@@ -121,31 +139,31 @@ export const BookingList: React.FC = () => {
       ),
     },
     {
-      key: 'serviceName',
-      title: 'Service',
+      key: 'serviceName' as keyof BookingRow,
+      label: 'Service',
       sortable: true,
     },
     {
-      key: 'startDateTime',
-      title: 'Date & Time',
+      key: 'startDateTime' as keyof BookingRow,
+      label: 'Date & Time',
       sortable: true,
-      render: (value: string, row: BookingRow) => (
+      render: (value: string | number | undefined, row: BookingRow, index: number) => (
         <div>
           <div className="text-sm font-medium text-gray-900">
-            {new Date(value).toLocaleDateString()}
+            {value ? new Date(value).toLocaleDateString() : 'N/A'}
           </div>
           <div className="text-sm text-gray-500">
-            {new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - 
-            {new Date(row.endDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {value ? new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'} - 
+            {row.endDateTime ? new Date(row.endDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
           </div>
         </div>
       ),
     },
     {
-      key: 'status',
-      title: 'Status',
+      key: 'status' as keyof BookingRow,
+      label: 'Status',
       sortable: true,
-      render: (value: string) => {
+      render: (value: string | number | undefined, row: BookingRow, index: number) => {
         const getStatusConfig = (status: string) => {
           switch (status.toLowerCase()) {
             case 'confirmed':
@@ -161,7 +179,7 @@ export const BookingList: React.FC = () => {
           }
         };
 
-        const config = getStatusConfig(value);
+        const config = getStatusConfig(value as string);
         const Icon = config.icon;
 
         return (
@@ -173,17 +191,17 @@ export const BookingList: React.FC = () => {
       },
     },
     {
-      key: 'amount',
-      title: 'Amount',
+      key: 'amount' as keyof BookingRow,
+      label: 'Amount',
       sortable: true,
-      render: (value: number) => (
+      render: (value: string | number | undefined, row: BookingRow, index: number) => (
         <span className="font-medium text-gray-900">₹{value.toLocaleString()}</span>
       ),
     },
     {
-      key: 'assignedStaff',
-      title: 'Staff',
-      render: (value: string) => value || '-',
+      key: 'assignedStaff' as keyof BookingRow,
+      label: 'Staff',
+      render: (value: string | number | undefined, row: BookingRow, index: number) => value || '-',
     },
   ];
 
@@ -313,7 +331,6 @@ export const BookingList: React.FC = () => {
                 placeholder="Search bookings..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                icon={<Search className="w-4 h-4 text-gray-400" />}
                 name="search"
               />
             </div>
@@ -429,19 +446,15 @@ export const BookingList: React.FC = () => {
 
         {/* Table */}
         <TableComponent
-          data={bookings}
+          data={tableData}
           columns={columns}
           loading={loading}
-          pagination={pagination}
+          total={pagination?.total || 0}
           currentPage={currentPage}
           rowsPerPage={rowsPerPage}
           onPageChange={setCurrentPage}
           onRowsPerPageChange={setRowsPerPage}
           onRowAction={handleRowAction}
-          featureName="Booking Management"
-          uniqueId="booking_management"
-          showActions={true}
-          showQuotationOption={true}
         />
       </div>
     </Layout>

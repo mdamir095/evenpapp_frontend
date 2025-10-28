@@ -162,7 +162,7 @@ const PhoneWithCountry: React.FC<PhoneWithCountryProps> = ({
       </div>
       
       {error && (
-        <FormHelperText id={`${id}-error`}>
+        <FormHelperText>
           {error}
         </FormHelperText>
       )}

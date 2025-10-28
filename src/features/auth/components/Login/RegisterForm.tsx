@@ -1,10 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { loginSchema, type LoginSchemaType } from '../../schemas/login.schema';
-import { Form } from '../../../../components/common/Form';
-import { InputGroup } from '../../../../components/molecules/InputGroup';
 import { Button } from '../../../../components/atoms/Button';
-import { FormError } from '../../../../components/atoms/FormError';
-import { useNavigate } from 'react-router-dom';
 
 const RegisterForm: React.FC = () => {
   return (

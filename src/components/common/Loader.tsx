@@ -1,4 +1,4 @@
-export function LoaderNoData({ size = 24, variant = 'full' }: { size?: number; variant?: 'full' | 'inline' }) {
+export function LoaderNoData({ variant = 'full' }: { variant?: 'full' | 'inline' }) {
   const containerClass = variant === 'full' ? 'flex items-center justify-center h-screen flex-col' : 'flex items-center justify-center py-8 flex-col';
   
   return (

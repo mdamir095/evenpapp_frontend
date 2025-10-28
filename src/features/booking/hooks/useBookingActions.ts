@@ -40,12 +40,12 @@ export function useBookingActions() {
 
   // Get booking list with pagination and search
   const getBookingList = useCallback(
-    async (page = 1, limit = 10, searchQuery = '', filters = {}) => {
+    async (pageParam = 1, limitParam = 10, searchQuery = '', filters = {}) => {
       dispatch(fetchBookingsStart());
       try {
         const params: any = {
-          page,
-          limit,
+          page: pageParam,
+          limit: limitParam,
           search: searchQuery,
           ...filters,
         };

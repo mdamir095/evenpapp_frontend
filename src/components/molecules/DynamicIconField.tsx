@@ -1,4 +1,3 @@
-import React from 'react';
 import { FiImage, FiUser, FiMail, FiLock } from 'react-icons/fi';
 
 const iconMap = {
@@ -9,7 +8,7 @@ const iconMap = {
 };
 
 const DynamicIconField = ({ type = 'user', label = 'Field Label' }) => {
-  const Icon = iconMap[type] || FiUser;
+  const Icon = iconMap[type as keyof typeof iconMap] || FiUser;
 
   return (
     <div className="flex items-center gap-4 p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition">

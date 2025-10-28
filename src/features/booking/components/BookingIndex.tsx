@@ -132,13 +132,12 @@ export const BookingIndex: React.FC = () => {
       filtered = filtered.filter(booking => {
         // Check if booking has vendor services
         if (selectedServiceType === 'vendor') {
-          return booking.vendorId || booking.vendor || 
+          return booking.vendor || 
                  booking.services?.some((service: any) => service.type === 'vendor' || service.vendorId);
         }
         // Check if booking has venue services
         if (selectedServiceType === 'venue') {
-          return booking.venueId || booking.venue || 
-                 booking.services?.some((service: any) => service.type === 'venue' || service.venueId);
+          return booking.services?.some((service: any) => service.type === 'venue' || service.venueId);
         }
         return true;
       });
@@ -281,7 +280,7 @@ export const BookingIndex: React.FC = () => {
         taxes: quotationData.taxes,
         totalAmount: quotationData.totalAmount,
         serviceId: 'service-id-placeholder', // You may need to get this from the selected booking or service
-        userId: userData.id || userData.userId, // Assuming user data has an id field
+        userId: userData.id || userData._id, // Assuming user data has an id field
         enterpriseId: userData.enterpriseId,
         enterpriseName: userData.organizationName,
         status: 'pending', // Initial status
@@ -357,7 +356,6 @@ export const BookingIndex: React.FC = () => {
                   ]}
                   value={selectedServiceType}
                   onChange={handleServiceTypeChange}
-                  placeholder="Filter by service type"
                 />
               </div>
             </div>

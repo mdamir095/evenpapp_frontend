@@ -11,6 +11,9 @@ export function useAuthActions() {
   const login = useCallback(async (email: string, password: string) => {
     dispatch(loginStart());
     try {
+      console.log('Login attempt with:', { email, password: '***' });
+      console.log('API Base URL:', api.defaults.baseURL);
+      
       // Make a POST request to your authentication endpoint using axios
       const response = await api.post('admin/login', {
         email,
@@ -23,6 +26,8 @@ export function useAuthActions() {
         }
       });
 
+      console.log('Login response:', response.data);
+
       // Assume the API returns a token or user info in response.data
       const token = response.data.data.accessToken; // Adjust according to your API response
       localStorage.setItem('token', response.data.data.accessToken);
@@ -32,6 +37,7 @@ export function useAuthActions() {
     } catch (err: any) {
       // Handle errors (network issues, invalid credentials, etc.)
       // Axios error messages can be in err.response?.data?.message
+      console.error('Login error:', err.response?.data || err.message);
       const errorMessage =
         err.response?.data?.message ||
         err.message ||

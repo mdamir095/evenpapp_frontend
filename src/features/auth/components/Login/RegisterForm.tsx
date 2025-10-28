@@ -1,5 +1,4 @@
 import React from 'react';
-import { loginSchema, type LoginSchemaType } from '../../schemas/login.schema';
 import { Button } from '../../../../components/atoms/Button';
 
 const RegisterForm: React.FC = () => {

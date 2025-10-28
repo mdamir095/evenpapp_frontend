@@ -280,7 +280,7 @@ export const BookingIndex: React.FC = () => {
         taxes: quotationData.taxes,
         totalAmount: quotationData.totalAmount,
         serviceId: 'service-id-placeholder', // You may need to get this from the selected booking or service
-        userId: userData.id || userData._id, // Assuming user data has an id field
+        userId: (userData as any).id || (userData as any)._id, // Assuming user data has an id field
         enterpriseId: userData.enterpriseId,
         enterpriseName: userData.organizationName,
         status: 'pending', // Initial status

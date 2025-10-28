@@ -31,7 +31,7 @@ export function useAuthActions() {
       console.log('Request data being sent:', requestData);
       
       // Make a POST request to your authentication endpoint using axios
-      const response = await api.post('admin/login', requestData, {
+      const response = await api.post('auth/login', requestData, {
         headers: {
           'Content-Type': 'application/json',
           // Add any additional headers if required, e.g., Authorization, etc.
@@ -65,7 +65,7 @@ export function useAuthActions() {
   const sendResetLink = useCallback(async (email: string) => {
     dispatch(loginStart());
     try {
-      const response = await api.post('admin/forgot-password', {
+      const response = await api.post('auth/forgot-password', {
         email,
       }, {
         headers: {
@@ -86,7 +86,7 @@ export function useAuthActions() {
   const resetPassword = useCallback(async (newPassword: string, token: string) => {
     dispatch(loginStart());
     try {
-      const response = await api.post('admin/reset-password', {
+      const response = await api.post('auth/reset-password', {
         newPassword,
         token,
       }, {

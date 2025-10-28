@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "start": "npm run dev",
+    "start": "vite preview --host 0.0.0.0 --port $PORT",
     "dev": "vite",
     "build": "tsc --noEmit --skipLibCheck && vite build",
     "lint": "eslint .",

@@ -1,4 +1,4 @@
-import { ArrowBigDown, Grip } from "lucide-react";
+import { Grip } from "lucide-react";
 import type { DragItem } from "../../types/form";
 
 interface DraggableComponentProps {

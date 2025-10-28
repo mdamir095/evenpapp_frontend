@@ -1,21 +1,16 @@
 import { useEffect, useState } from 'react';
 import { FormFieldComponent } from './FormFieldComponent';
 import { Button } from '../../components/ui/button';
-import { Trash2, Send, Edit2Icon, SquarePen, Eye } from 'lucide-react';
+import { Trash2, Send, SquarePen } from 'lucide-react';
 import type { FormField } from '../../types/form';
 import { API_ROUTES, ROUTING } from '../../constants/routes';
 import api from '../../axios';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '../atoms/Toast';
 import { Textarea } from '../atoms/Textarea';
-import { Select } from '../atoms/Select';
-import { SelectGroup, type OptionType } from '../molecules/SelectGroup';
-import { SideModal } from '../common/SideModal';
-import { PropertiesPanel } from './PropertiesPanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { Label } from '../atoms/Label';
 import { DropDown } from '../atoms/DropDown';
-import { InputGroup } from '../molecules/InputGroup';
 import Input from '../atoms/Input';
 
 interface FormCanvasProps {
@@ -171,11 +166,6 @@ export const FormCanvas = ({ fields, onFieldsChange, selectedFieldId, onFieldSel
     }
   };
  
-  const updateField = (fieldId: string, updates: Partial<FormField>) => {
-    onFieldsChange(fields.map(field =>
-      field.id === fieldId ? { ...field, ...updates } : field
-    ));
-  };
 
   const handleFieldChange = (fieldId: string, value: any) => {
     setFormData(prev => ({

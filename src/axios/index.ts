@@ -12,7 +12,7 @@ const api = axios.create({
 });
 
 // --- Global Error Handler Utility ---
-export function handleApiError(error: unknown) {
+export function handleApiError(_error: unknown) {
   // Example: Show a toast notification (replace with your notification system)
   // toast.error(error?.response?.data?.message || 'API Error');
   // Add more global error handling logic here if needed

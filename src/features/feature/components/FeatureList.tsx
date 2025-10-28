@@ -22,7 +22,7 @@ const FeatureList: React.FC = () => {
 
   // State for inline editing
   const [editingFeature, setEditingFeature] = useState<any>(null);
-  const [isFormVisible] = useState(true); // Default to true - form open by default
+  const [isFormVisible, setIsFormVisible] = useState(true); // Default to true - form open by default
 
   // Fetch users when page or search changes
   useEffect(() => {

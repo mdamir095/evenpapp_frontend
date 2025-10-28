@@ -239,7 +239,7 @@ export const RowActionMenu = ({
                 //   setOpen(false);
                 //   onQuotation?.();
                 // }}
-                onClick={() => setIsOpen(true)}
+                onClick={() => setOpen(true)}
                 className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-gray-700 cursor-pointer"
                 role="menuitem"
               >

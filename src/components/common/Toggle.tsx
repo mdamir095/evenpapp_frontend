@@ -17,4 +17,3 @@ export default function ToggleButton({ onToggle }: ToggleButtonProps) {
     </button>
   );
 }
-import React from 'react';

@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import { Search, Filter, Download, Plus } from 'lucide-react';
 import PaginationBar from './Pagination';
 
 type Column = {

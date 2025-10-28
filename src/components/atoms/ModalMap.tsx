@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Button } from "./Button";
-import { useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 // import L from "leaflet";
 

@@ -174,10 +174,10 @@ export const VendorRequirements: React.FC = () => {
       key: 'guestCount' as keyof RequirementRow,
       label: 'Guests',
       sortable: true,
-      render: (value: number) => (
+      render: (value: string | number | boolean, row: RequirementRow, index: number) => (
         <div className="flex items-center gap-1">
           <Users className="w-4 h-4 text-gray-400" />
-          <span className="text-sm font-medium">{value}</span>
+          <span className="text-sm font-medium">{typeof value === 'number' ? value : '0'}</span>
         </div>
       ),
     },
@@ -185,19 +185,19 @@ export const VendorRequirements: React.FC = () => {
       key: 'budget' as keyof RequirementRow,
       label: 'Budget',
       sortable: true,
-      render: (value: number) => (
+      render: (value: string | number | boolean, row: RequirementRow, index: number) => (
         <div className="flex items-center gap-1">
           <DollarSign className="w-4 h-4 text-gray-400" />
-          <span className="text-sm font-medium">₹{value.toLocaleString()}</span>
+          <span className="text-sm font-medium">₹{typeof value === 'number' ? value.toLocaleString() : '0'}</span>
         </div>
       ),
     },
     {
       key: 'quotesCount' as keyof RequirementRow,
       label: 'Quotes',
-      render: (value: number, row: RequirementRow) => (
+      render: (value: string | number | boolean, row: RequirementRow, index: number) => (
         <div className="text-center">
-          <div className="text-sm font-medium">{value}</div>
+          <div className="text-sm font-medium">{typeof value === 'number' ? value : '0'}</div>
           {row.isQuoted && (
             <div className="text-xs text-green-600">You quoted</div>
           )}

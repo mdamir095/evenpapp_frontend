@@ -184,9 +184,9 @@ export const VendorBookingList: React.FC = () => {
       key: 'amount' as keyof VendorBookingRow,
       label: 'Amount',
       sortable: true,
-      render: (value: number, row: VendorBookingRow) => (
+      render: (value: string | number | undefined, row: VendorBookingRow, index: number) => (
         <div>
-          <div className="font-medium text-gray-900">₹{value.toLocaleString()}</div>
+          <div className="font-medium text-gray-900">₹{typeof value === 'number' ? value.toLocaleString() : '0'}</div>
           <div className="text-xs text-gray-500">
             Commission: ₹{row.commission.toLocaleString()}
           </div>

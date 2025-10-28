@@ -195,7 +195,7 @@ export const BookingList: React.FC = () => {
       label: 'Amount',
       sortable: true,
       render: (value: string | number | undefined, row: BookingRow, index: number) => (
-        <span className="font-medium text-gray-900">₹{value.toLocaleString()}</span>
+        <span className="font-medium text-gray-900">₹{typeof value === 'number' ? value.toLocaleString() : '0'}</span>
       ),
     },
     {

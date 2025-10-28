@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback } from "react";
-import { Download, Plus, Filter } from "lucide-react";
+import { Download, Filter } from "lucide-react";
 import { NoData } from "../common/NoData";
 import TableSkeleton from "../common/TableSkeleton";
 import { Button } from "./Button";

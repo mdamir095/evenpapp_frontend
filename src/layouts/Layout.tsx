@@ -62,7 +62,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem('sidebarExpanded', JSON.stringify(isExpanded));
   }, [isExpanded]);
 
-  const toggleSidebar = () => setIsExpanded((prev) => !prev);
+  const toggleSidebar = () => setIsExpanded((prev: boolean) => !prev);
   return (
     // <motion.div
     //   initial="hidden"

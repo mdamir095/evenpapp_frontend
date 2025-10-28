@@ -1,6 +1,4 @@
 import React from 'react';
-import { SearchCheck } from 'lucide-react';
-import { Button } from '../atoms/Button';
 
 interface NoDataProps {
   message?: string;
@@ -10,7 +8,7 @@ interface NoDataProps {
 
 export const NoData: React.FC<NoDataProps> = ({
   message = 'No data available.',
-  icon = "SearchCheck",
+  icon,
   className = '',
 }) => (
   <div className={`flex flex-col items-center justify-center py-8 text-gray-500 min-h-[300px] ${className}`}>

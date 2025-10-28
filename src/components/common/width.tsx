@@ -177,7 +177,7 @@ module.exports = {
   //       // ... and so on up to '50': '50%'
   //     },
   // }
-    theme: {
+  theme: {
     container: {
       center: true,
       padding: "2rem",

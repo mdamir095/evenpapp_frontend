@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Label } from '../ui/label';
 import { Input } from '../atoms/Input';
-import { Button } from '../atoms/Button';
-import { Loader2, CheckCircle, AlertCircle, MapPin, Globe } from 'lucide-react';
+import { Loader2, CheckCircle, AlertCircle, MapPin } from 'lucide-react';
 import GooglePlacesAutocomplete from './GooglePlacesAutocomplete';
 
 interface LocationFieldProps {

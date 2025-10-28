@@ -48,7 +48,6 @@ const Breadcrumbs: React.FC<BreadcrumbsProps & { separator?: React.ReactNode }> 
 
   // Filter out 'edit' and IDs but keep track of them for determining edit mode
   const isEditMode = segments.includes('edit') || segments.some(seg => /^[0-9a-fA-F]{24}$/.test(seg));
-  const isAddMode = segments.includes('new');
   
   const filteredSegments = segments.filter((segment) => {
     // Remove 'edit' and MongoDB ObjectIDs (24-character hex strings)

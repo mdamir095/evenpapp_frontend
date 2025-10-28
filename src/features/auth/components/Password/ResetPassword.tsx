@@ -17,16 +17,12 @@ const ResetPassword: React.FC = () => {
     const [searchParams] = useSearchParams();
     const token = searchParams.get('token');
 
-    const onSubmit = async (
-        data: ResetFormValues,
-        reset: () => void
-    ) => {
+    const onSubmit = async (data: ResetFormValues) => {
         resetPassword(data.newPassword, token!);
         if(error){
             toast.error(error);
         }else{
             toast.success('Password reset successfully');
-            reset(); // reset form after creation
         }    
     };
   

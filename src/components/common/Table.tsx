@@ -1,7 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Button } from '../atoms/Button';
+import { useState, useMemo } from 'react';
 import { Search, Filter, Download, Plus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import PaginationBar from './Pagination';
 
 type Column = {
@@ -9,7 +7,6 @@ type Column = {
   label: string;
   width?: number;
 };
- const navigate = useNavigate();
 type SortOrder = 'asc' | 'desc' | null;
  const [page, setPage] = useState(1);
 
@@ -30,8 +27,8 @@ function TableComponent<T extends { id: string | number }>({
 }: TableComponentProps<T>) {
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery] = useState('');
+  const [currentPage] = useState(1);
 
   const handleSort = (key: string) => {
     let newOrder: SortOrder = 'asc';

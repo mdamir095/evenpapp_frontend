@@ -1,12 +1,11 @@
 import { ListCollapse } from 'lucide-react';
-import { Button } from '../atoms/Button';
 
 interface ToggleButtonProps {
   isOn: boolean;
   onToggle: () => void;
 }
 
-export default function ToggleButton({ isOn, onToggle }: ToggleButtonProps) {
+export default function ToggleButton({ onToggle }: ToggleButtonProps) {
   return (
    <button className="bg-white border border-gray-300 px-4 py-2 rounded hover:bg-inherit hover:border-inherit"
       onClick={onToggle}

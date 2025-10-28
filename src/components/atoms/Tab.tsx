@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { CSSTransition, SwitchTransition } from "react-transition-group"; // Optional, for smoother transitions
-import { Button } from "./Button";
 
 const tabs = ["Overview", "Projects", "Settings"];
 

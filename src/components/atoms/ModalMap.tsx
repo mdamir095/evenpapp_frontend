@@ -4,10 +4,10 @@ import { useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 // import L from "leaflet";
 
-// Fix Leaflet default marker icons
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
+// Fix Leaflet default marker icons - commented out due to import issues
+// import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+// import markerIcon from "leaflet/dist/images/marker-icon.png";
+// import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import { InputGroup } from "../molecules/InputGroup";
 
 // Leaflet icon configuration commented out due to import issues
@@ -27,14 +27,14 @@ interface ModalMapProps {
   saveButtonText?: string;
 }
 
-function LocationMarker({ onAddPin }: { onAddPin: (lat: number, lng: number) => void }) {
-  useMapEvents({
-    click(e: any) {
-      onAddPin(e.latlng.lat, e.latlng.lng);
-    },
-  });
-  return null;
-}
+// function LocationMarker({ onAddPin }: { onAddPin: (lat: number, lng: number) => void }) {
+//   useMapEvents({
+//     click(e: any) {
+//       onAddPin(e.latlng.lat, e.latlng.lng);
+//     },
+//   });
+//   return null;
+// }
 
 const ModalMap: React.FC<ModalMapProps> = ({
   isOpen,
@@ -44,7 +44,7 @@ const ModalMap: React.FC<ModalMapProps> = ({
   showSaveButton = true,
   saveButtonText = "Save",
 }) => {
-  const [pins, setPins] = useState<{ lat: number; lng: number }[]>([]);
+  const [pins] = useState<{ lat: number; lng: number }[]>([]);
 
   if (!isOpen) return null;
 

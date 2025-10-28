@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { ListRestart, MoreVertical, Pencil, Trash2, Power, PowerOff, MapPinned, Shield, ShieldOff, FileText } from "lucide-react";
 import { createPortal } from "react-dom";
-import ModalMap from "./ModalMap";
 
 type RowActionMenuProps = {
   onEdit?: () => void;
@@ -38,7 +37,6 @@ export const RowActionMenu = ({
   onBlock,
   onUnblock,
   onLocation,
-  onQuotation,
   canActivate = false,
   canDeactivate = false,
   canBlock = false,
@@ -49,7 +47,7 @@ export const RowActionMenu = ({
   showQuotationOption = false,
 }: RowActionMenuProps) => {
   const [open, setOpen] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen] = useState(false);
   const [position, setPosition] = useState<'top' | 'bottom'>('bottom');
   const [coords, setCoords] = useState<{ top: number; right: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);

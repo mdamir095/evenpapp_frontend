@@ -10,10 +10,10 @@ import { ROUTING } from '../../../constants/routes';
 import { ConfirmModal } from '../../../components/molecules/ConfirmModal';
 
 const DynamicFormList: React.FC = () => {
-  const { users = [], pagination, loading, roles } = useUser();
+  const { users = [], pagination, loading } = useUser();
   const { getFormList, removeForm } = useDynamicFormActions();
 
-  const [selectedRole, setSelectedRole] = useState('');
+  const [selectedRole] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [rowsPerPage, setRowsPerPage] = useState(10);

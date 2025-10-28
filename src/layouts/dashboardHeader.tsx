@@ -1,5 +1,4 @@
-import React from 'react';
-import { Bell, Menu, User } from 'lucide-react';
+import { Bell, User } from 'lucide-react';
 import { useUser } from '../hooks/useUser';
 import { IMAGE_BASE_URL } from '../config/api';
 

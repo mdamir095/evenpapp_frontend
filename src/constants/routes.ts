@@ -23,6 +23,8 @@ API_ROUTES = {
     CONTENT_POLICIES: "content-policies",
     BOOKINGS: "booking",
     QUOTATIONS: "quotations",
+    VENDOR_CATEGORIES: "vendor-category",
+    VENUE_CATEGORIES: "venue-category",
 }
 export const ROUTING = {
     GET_ALL_FIELDS: "fields",

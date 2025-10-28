@@ -8,7 +8,6 @@ import api from '../../axios';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '../atoms/Toast';
 import { Textarea } from '../atoms/Textarea';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { Label } from '../atoms/Label';
 import { DropDown } from '../atoms/DropDown';
 import Input from '../atoms/Input';
@@ -210,7 +209,7 @@ export const FormCanvas = ({ fields, onFieldsChange, selectedFieldId, onFieldSel
         return;
       }
 
-      const updatedFields = fields.map((field, index: number) => ({
+      const updatedFields = fields.map((field) => ({
         ...field,
         key: `${field.type}`,
         name: `${field.label}`,
@@ -382,7 +381,7 @@ export const FormCanvas = ({ fields, onFieldsChange, selectedFieldId, onFieldSel
               </div>
             ) : (
               <div className="space-y-0 col-start-1 row-start-1 grid grid-cols-2 gap-4">
-                {fields.map((field, index) => (
+                {fields.map((field) => (
                  
                   <div
                     key={field.id}

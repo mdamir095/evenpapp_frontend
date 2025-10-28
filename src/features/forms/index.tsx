@@ -11,11 +11,6 @@ export interface FormElement {
 }
 
 const Forms: React.FC = () => {
-  const [stackedFormElements, setStackedFormElements] = useState<FormElement[]>([]);
-
-  const handleAddElement = (element: FormElement) => {
-    setStackedFormElements((prev) => [...prev, element]);
-  };
 
   return (
     <Layout>

@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback } from "react";
-import { Download, Plus, Filter, Search } from "lucide-react";
+import { Download, Plus, Filter } from "lucide-react";
 import { NoData } from "../common/NoData";
 import TableSkeleton from "../common/TableSkeleton";
 import { Button } from "./Button";
@@ -31,7 +31,6 @@ function TableComponent<T extends TableRow>(props: TableComponentProps<T>) {
     loading = false,
     addButtonRoute = "/user-management/new",
     addButtonText = "Add User",
-    addButtonIcon = <Plus className="size-4" />,
     showAddButton = false,
     searchBar,
     actionButtons,
@@ -209,7 +208,7 @@ function TableComponent<T extends TableRow>(props: TableComponentProps<T>) {
                 ]}
                 value={[]}
                 heightClass="min-h-[43px]"
-                onChange={(selected) => {/* Selection handled */}}
+                onChange={(_selected) => {/* Selection handled */}}
                 label=""
               />
             )}

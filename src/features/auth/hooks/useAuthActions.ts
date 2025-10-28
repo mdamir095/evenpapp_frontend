@@ -11,15 +11,27 @@ export function useAuthActions() {
   const login = useCallback(async (email: string, password: string) => {
     dispatch(loginStart());
     try {
+      // Validate input
+      if (!email || !password) {
+        throw new Error('Email and password are required');
+      }
+      
+      if (email.trim() === '' || password.trim() === '') {
+        throw new Error('Email and password cannot be empty');
+      }
+      
       console.log('Login attempt with:', { email, password: '***' });
       console.log('API Base URL:', api.defaults.baseURL);
       
+      const requestData = {
+        email: email.trim(),
+        password: password.trim(),
+      };
+      
+      console.log('Request data being sent:', requestData);
+      
       // Make a POST request to your authentication endpoint using axios
-      const response = await api.post('admin/login', {
-        email,
-        password,
-        // Add any additional fields your API expects here
-      }, {
+      const response = await api.post('admin/login', requestData, {
         headers: {
           'Content-Type': 'application/json',
           // Add any additional headers if required, e.g., Authorization, etc.

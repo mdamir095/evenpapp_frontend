@@ -3,6 +3,10 @@ import axios from 'axios';
 // --- Enterprise Axios Instance Setup ---
 import { API_BASE_URL } from '../config/api';
 
+// Debug: Log the API base URL
+console.log('API_BASE_URL:', API_BASE_URL);
+console.log('VITE_API_BASE_URL env var:', import.meta.env.VITE_API_BASE_URL);
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,

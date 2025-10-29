@@ -20,15 +20,10 @@ export function useAuthActions() {
         throw new Error('Email and password cannot be empty');
       }
       
-      console.log('Login attempt with:', { email, password: '***' });
-      console.log('API Base URL:', api.defaults.baseURL);
-      
       const requestData = {
         email: email.trim(),
         password: password.trim(),
       };
-      
-      console.log('Request data being sent:', requestData);
       
       // Make a POST request to your authentication endpoint using axios
       const response = await api.post('auth/login', requestData, {
@@ -38,7 +33,6 @@ export function useAuthActions() {
         }
       });
 
-      console.log('Login response:', response.data);
 
       // Assume the API returns a token or user info in response.data
       const token = response.data.data.accessToken; // Adjust according to your API response

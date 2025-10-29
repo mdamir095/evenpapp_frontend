@@ -415,7 +415,7 @@ const VendorForm: React.FC = () => {
                        
                        // If the URL is relative, construct the full URL
                        if (imageUrl && imageUrl.startsWith('/uploads/')) {
-                         const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:10030";
+                         const baseUrl = import.meta.env.VITE_API_BASE_URL || "https://evenpappbackend-production.up.railway.app/api/v1/";
                          imageUrl = `${baseUrl.replace('/api/v1/', '')}${imageUrl}`;
                        }
                        

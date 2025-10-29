@@ -25,6 +25,10 @@ export function useAuthActions() {
         password: password.trim(),
       };
       
+      // Debug: Log the full URL being constructed
+      console.log('API base URL:', api.defaults.baseURL);
+      console.log('Full URL will be:', `${api.defaults.baseURL}auth/login`);
+      
       // Make a POST request to your authentication endpoint using axios
       const response = await api.post('auth/login', requestData, {
         headers: {

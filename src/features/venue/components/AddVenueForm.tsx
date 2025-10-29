@@ -230,7 +230,7 @@ const AddVenueForm: React.FC = () => {
 
     // Process dynamic form fields and handle images
     if (getSelectedForm && getSelectedForm.fields) {
-      const processedFields = getSelectedForm.fields.map(field => {
+      const processedFields = getSelectedForm.fields.map((field: any) => {
         const fieldValue = formData[field.id] || field.metadata?.defaultValue || '';
         
         // Handle MultiImageUpload fields - extract File objects
@@ -271,7 +271,7 @@ const AddVenueForm: React.FC = () => {
       formDataObj.append('formData', JSON.stringify(formDataWithValues));
 
       // Append image files separately with static parameter name
-      getSelectedForm.fields.forEach(field => {
+      getSelectedForm.fields.forEach((field: any) => {
         if (field.type === 'MultiImageUpload') {
           const fieldValue = formData[field.id];
           if (Array.isArray(fieldValue)) {

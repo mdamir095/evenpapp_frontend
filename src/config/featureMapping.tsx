@@ -92,6 +92,12 @@ export const FEATURE_MAPPING: Record<string, FeatureConfig> = {
     icon: <UserLockIcon size={24} />,
     defaultLabel: 'Vendor Service',
   },
+  vendor_category: {
+    uniqueId: 'vendor_category',
+    route: '/vendor-category',
+    icon: <Package size={24} />,
+    defaultLabel: 'Vendor Category',
+  },
   content_policy: {
     uniqueId: 'content_policy',
     route: '/content-policy',
@@ -154,6 +160,7 @@ export const generateAllMenuItems = (): MenuItemFromFeature[] => {
     'form_builder',
     'venue_management',
     'service_category',
+    'vendor_category',
     'vendor_management',
     'booking_management',
     'content_policy',

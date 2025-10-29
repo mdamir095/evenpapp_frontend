@@ -45,7 +45,11 @@ export const isSuperAdmin = (userData: UserData | null): boolean => {
       // Also check original case from API
       role.name === 'Super Admin' ||
       role.name === 'SUPER_ADMIN' ||
-      role.name === 'SuperAdmin'
+      role.name === 'SuperAdmin' ||
+      // Check for admin roles (any role with admin in the name)
+      roleName.includes('admin') ||
+      // Check for internal admin roles
+      (role as any).isInternal === true
     );
   });
 };

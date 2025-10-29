@@ -142,32 +142,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isExpanded, toggleSidebar }) => {
 
   const userData = getUserDataFromStorage();
 
-  // Generate dynamic menu items based on user type and features
+  // Generate dynamic menu items - always show all menu items
   const menuItems: MenuItemFromFeature[] = useMemo(() => {
-    // Check if user is Super Admin
-    const isUserSuperAdmin = isSuperAdmin(userData);
-    
-    let baseMenuItems: MenuItemFromFeature[] = [];
-    
-    if (isUserSuperAdmin) {
-      // Super Admin gets ALL features
-      baseMenuItems = generateAllMenuItems();
-    } else {
-      // Regular users get features based on their permissions
-      const userFeatures = userData?.roles?.flatMap(role => role.features || []) || [];
-      baseMenuItems = generateMenuItemsFromFeatures(userFeatures as any);
-    }
-
-    // For debugging - temporarily show all items if user has any roles
-    if (userData?.roles && userData.roles.length > 0) {
-      // If user has roles but isSuperAdmin is false, force show all items
-      if (!isUserSuperAdmin) {
-        baseMenuItems = generateAllMenuItems();
-      }
-    }
-
-    // Return all menu items without grouping
-    return baseMenuItems;
+    // Always show all menu items for all users
+    return generateAllMenuItems();
   }, [userData]);
 
   return (
@@ -199,29 +177,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isExpanded, toggleSidebar }) => {
       <div className="flex-1 overflow-y-auto custom-scrollbar scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent overflow-x-hidden ">
         <nav className="mt-0 space-y-2">
           <div className={clsx({ 'p-4': isExpanded, 'p-2 py-4': !isExpanded })}>
-                         {menuItems
-               .filter((item) => {
-                 // Dashboard and Profile Setting are always accessible
-                 if (item.uniqueId === 'dashboard' || item.uniqueId === 'profile_setting') {
-                   return true;
-                 }
-                 
-                 // Super Admin has access to everything (already filtered in generateAllMenuItems)
-                 if (isSuperAdmin(userData)) {
-                   return true;
-                 }
-                 
-                 
-                 
-                 // For regular users, check permissions using both name and uniqueId
-                 const permissions = getFeaturePermissions(userData, item.feature);
-                 const permissionsByUniqueId = getFeaturePermissions(userData, item.uniqueId);
-                 
-                 const hasAccess = permissions.hasAccess || permissionsByUniqueId.hasAccess;
-                 
-                 return hasAccess;
-               })
-                                             .map((item) => (
+                         {menuItems.map((item) => (
                   <SidebarLink
                     key={item.to}
                     to={item.to}

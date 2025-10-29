@@ -196,6 +196,39 @@ export const generateAllMenuItems = (): MenuItemFromFeature[] => {
   return menuItems;
 };
 
+// Generate basic menu items for users with no specific permissions
+export const generateBasicMenuItems = (): MenuItemFromFeature[] => {
+  const menuItems: MenuItemFromFeature[] = [];
+  
+  // Always add Dashboard
+  const dashboardConfig = getFeatureConfig('dashboard');
+  if (dashboardConfig) {
+    menuItems.push({
+      to: dashboardConfig.route,
+      label: dashboardConfig.defaultLabel,
+      icon: dashboardConfig.icon,
+      badge: null,
+      feature: dashboardConfig.defaultLabel,
+      uniqueId: dashboardConfig.uniqueId,
+    });
+  }
+
+  // Always add Profile Setting
+  const profileConfig = getFeatureConfig('profile_setting');
+  if (profileConfig) {
+    menuItems.push({
+      to: profileConfig.route,
+      label: profileConfig.defaultLabel,
+      icon: profileConfig.icon,
+      badge: null,
+      feature: profileConfig.defaultLabel,
+      uniqueId: profileConfig.uniqueId,
+    });
+  }
+
+  return menuItems;
+};
+
 export const generateMenuItemsFromFeatures = (userFeatures: Array<{
   id: string;
   name: string;

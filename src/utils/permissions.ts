@@ -46,10 +46,10 @@ export const isSuperAdmin = (userData: UserData | null): boolean => {
       role.name === 'Super Admin' ||
       role.name === 'SUPER_ADMIN' ||
       role.name === 'SuperAdmin' ||
-      // Check for admin roles (any role with admin in the name)
-      roleName.includes('admin') ||
-      // Check for internal admin roles
-      (role as any).isInternal === true
+      // Check for specific admin patterns (not just any admin)
+      (roleName.includes('super') && roleName.includes('admin')) ||
+      // Check for internal admin roles only if they have super admin privileges
+      ((role as any).isInternal === true && roleName.includes('super'))
     );
   });
 };

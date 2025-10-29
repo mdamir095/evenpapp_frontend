@@ -104,6 +104,12 @@ export const FEATURE_MAPPING: Record<string, FeatureConfig> = {
     icon: <Calendar size={24} />,
     defaultLabel: 'Booking Management',
   },
+  booking__management: {
+    uniqueId: 'booking__management',
+    route: '/booking-management',
+    icon: <Calendar size={24} />,
+    defaultLabel: 'Booking Management',
+  },
 };
 
 // Helper function to get feature config by uniqueId

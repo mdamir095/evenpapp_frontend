@@ -144,20 +144,26 @@ const Sidebar: React.FC<SidebarProps> = ({ isExpanded, toggleSidebar }) => {
 
   // Generate dynamic menu items based on user type and features
   const menuItems: MenuItemFromFeature[] = useMemo(() => {
+    console.log('🔍 Sidebar Debug - User Data:', userData);
+    
     // Check if user is Super Admin
     const isUserSuperAdmin = isSuperAdmin(userData);
+    console.log('🔍 Is Super Admin:', isUserSuperAdmin);
     
     let baseMenuItems: MenuItemFromFeature[] = [];
     
     if (isUserSuperAdmin) {
       // Super Admin gets ALL features
+      console.log('🔍 Using Super Admin menu items');
       baseMenuItems = generateAllMenuItems();
     } else {
       // Regular users get features based on their permissions
       const userFeatures = userData?.roles?.flatMap(role => role.features || []) || [];
+      console.log('🔍 User Features:', userFeatures);
       baseMenuItems = generateMenuItemsFromFeatures(userFeatures as any);
     }
 
+    console.log('🔍 Generated Menu Items:', baseMenuItems);
     // Return all menu items without grouping
     return baseMenuItems;
   }, [userData]);
@@ -210,6 +216,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isExpanded, toggleSidebar }) => {
                  const permissionsByUniqueId = getFeaturePermissions(userData, item.uniqueId);
                  
                  const hasAccess = permissions.hasAccess || permissionsByUniqueId.hasAccess;
+                 
+                 console.log('🔍 Permission check for', item.uniqueId, ':', {
+                   feature: item.feature,
+                   permissions: permissions.hasAccess,
+                   permissionsByUniqueId: permissionsByUniqueId.hasAccess,
+                   hasAccess
+                 });
                  
                  return hasAccess;
                })

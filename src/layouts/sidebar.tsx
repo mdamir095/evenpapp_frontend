@@ -158,6 +158,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isExpanded, toggleSidebar }) => {
       baseMenuItems = generateMenuItemsFromFeatures(userFeatures as any);
     }
 
+    // For debugging - temporarily show all items if user has any roles
+    if (userData?.roles && userData.roles.length > 0) {
+      // If user has roles but isSuperAdmin is false, force show all items
+      if (!isUserSuperAdmin) {
+        baseMenuItems = generateAllMenuItems();
+      }
+    }
+
     // Return all menu items without grouping
     return baseMenuItems;
   }, [userData]);

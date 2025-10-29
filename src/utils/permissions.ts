@@ -30,15 +30,12 @@ export interface UserData {
  */
 export const isSuperAdmin = (userData: UserData | null): boolean => {
   if (!userData?.roles || !Array.isArray(userData.roles)) {
-    console.log('🔍 isSuperAdmin: No roles found');
     return false;
   }
 
-  console.log('🔍 isSuperAdmin: Checking roles:', userData.roles.map(r => r.name));
-
-  const result = userData.roles.some((role: UserRole) => {
+  return userData.roles.some((role: UserRole) => {
     const roleName = role.name?.toLowerCase().trim();
-    const isMatch = (
+    return (
       // Exact Super Admin matches ONLY
       roleName === 'super admin' ||
       roleName === 'super_admin' ||
@@ -50,18 +47,7 @@ export const isSuperAdmin = (userData: UserData | null): boolean => {
       role.name === 'SUPER_ADMIN' ||
       role.name === 'SuperAdmin'
     );
-    
-    console.log('🔍 isSuperAdmin: Role check:', {
-      roleName: role.name,
-      lowerCase: roleName,
-      isMatch
-    });
-    
-    return isMatch;
   });
-
-  console.log('🔍 isSuperAdmin: Final result:', result);
-  return result;
 };
 
 /**

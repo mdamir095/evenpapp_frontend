@@ -30,21 +30,38 @@ export interface UserData {
  */
 export const isSuperAdmin = (userData: UserData | null): boolean => {
   if (!userData?.roles || !Array.isArray(userData.roles)) {
+    console.log('🔍 isSuperAdmin: No roles found');
     return false;
   }
 
-  return userData.roles.some((role: UserRole) => {
+  console.log('🔍 isSuperAdmin: Checking roles:', userData.roles.map(r => r.name));
+
+  const result = userData.roles.some((role: UserRole) => {
     const roleName = role.name?.toLowerCase().trim();
-    return (
+    const isMatch = (
       // Exact Super Admin matches ONLY
       roleName === 'super admin' ||
       roleName === 'super_admin' ||
       roleName === 'superadmin' ||
       roleName === 'super-admin' ||
-      roleName === 'super'
-      // Removed broad condition that was matching any role with "super" and "admin"
+      roleName === 'super' ||
+      // Also check original case from API
+      role.name === 'Super Admin' ||
+      role.name === 'SUPER_ADMIN' ||
+      role.name === 'SuperAdmin'
     );
+    
+    console.log('🔍 isSuperAdmin: Role check:', {
+      roleName: role.name,
+      lowerCase: roleName,
+      isMatch
+    });
+    
+    return isMatch;
   });
+
+  console.log('🔍 isSuperAdmin: Final result:', result);
+  return result;
 };
 
 /**

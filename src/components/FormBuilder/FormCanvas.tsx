@@ -201,13 +201,13 @@ export const FormCanvas = ({ fields, onFieldsChange, selectedFieldId, onFieldSel
         return;
       }
 
-      const requiredFields = fields.filter(field => field.required);
-      const missingFields = requiredFields.filter(field => !formData[field.id]);
+      //const requiredFields = fields.filter(field => field.required);
+      //const missingFields = requiredFields.filter(field => !formData[field.id]);
 
-      if (missingFields.length > 0) {
-        alert(`Please fill in all required fields: ${missingFields.map(f => f.label).join(', ')}`);
-        return;
-      }
+      // if (missingFields.length > 0) {
+      //   alert(`Please fill in all required fields: ${missingFields.map(f => f.label).join(', ')}`);
+      //   return;
+      // }
 
       const updatedFields = fields.map((field) => ({
         ...field,

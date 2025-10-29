@@ -16,8 +16,8 @@ export default function ImageUpload({ onFileSelect, existingImageUrl }: ImageUpl
       if (!path || typeof path !== 'string') return '';
       return path.split(/[/\\]/).pop() || '';
     };
-    const imagePath = existingImageUrl ? getFileName(existingImageUrl) : '';
-    const imageUrl = imagePath ? `${IMAGE_BASE_URL}/${imagePath.replace(/\\/g, '/')}` : '';
+    const imagePath = existingImageUrl ? existingImageUrl : getFileName(existingImageUrl);
+    const imageUrl = imagePath.startsWith('http') || imagePath.startsWith('https') ? imagePath : `${IMAGE_BASE_URL}/${imagePath.replace(/\\/g, '/')}`;
     return preview || imageUrl || null;
   };
 

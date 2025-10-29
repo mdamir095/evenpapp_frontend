@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import React, { constructor, useState } from 'react';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
+import { Checkbox } from '../../components/ui/checkbox';
 import { Button } from '../../components/ui/button';
 import { Plus, X, Settings } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import type { FormField } from '../../types/form';
 import { CheckboxWithLabel } from '../molecules/CheckboxWithLabel';
+import type { Header } from '@radix-ui/react-accordion';
 
 interface PropertiesPanelProps {
   selectedField: FormField| null;
@@ -243,8 +245,8 @@ export const PropertiesPanel = ({ selectedField, onFieldUpdate, setShowPropertie
         <div className="flex items-center space-x-2">
           <CheckboxWithLabel 
             label="Required field" 
-            checked={selectedField.required || false} 
-            onChange={(checked) => onFieldUpdate(selectedField.id, { required: !!checked })} 
+            checked={selectedField.validation?.required?.value || false} 
+            onChange={(checked) => onFieldUpdate(selectedField.id, { validation: { ...selectedField.validation, required: { value: !!checked, message: `${selectedField.label} is required` } } })} 
             id={`required-${selectedField.id}`} 
             name={`required-${selectedField.id}`}
           />

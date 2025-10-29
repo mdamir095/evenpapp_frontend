@@ -187,13 +187,32 @@ export function useAuthActions() {
     dispatch(fileUploadStart());
   
     try {
+      // Validate file before upload
+      if (!file) {
+        throw new Error('No file provided');
+      }
+      
+      // Check file size (limit to 5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        throw new Error('File size too large. Maximum size is 5MB.');
+      }
+      
+      // Check file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+      if (!allowedTypes.includes(file.type)) {
+        throw new Error('Invalid file type. Only JPEG, PNG, and GIF files are allowed.');
+      }
+      
+      console.log('Uploading file:', {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      });
+      
       const formData = new FormData();
       formData.append('file', file);
   
-      // Log contents of FormData
-      for (const [key, value] of formData.entries()) {
-        // FormData logging removed
-      }
       const response = await api.post(`${API_ROUTES.UPDATE_PROFILE_IMAGE}`, formData, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -222,10 +241,24 @@ export function useAuthActions() {
       return imageUrlString;
   
     } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.message ||
-        err.message ||
-        'Image upload failed';
+      console.error('Profile image upload error:', err);
+      
+      let errorMessage = 'Image upload failed';
+      
+      if (err.response?.status === 500) {
+        errorMessage = 'Server error during image upload. Please try again or contact support.';
+      } else if (err.response?.status === 413) {
+        errorMessage = 'File too large. Please choose a smaller image.';
+      } else if (err.response?.status === 415) {
+        errorMessage = 'Unsupported file type. Please use JPEG, PNG, or GIF images.';
+      } else if (err.response?.status === 401) {
+        errorMessage = 'Authentication failed. Please log in again.';
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
       dispatch(fileUploadFailure(errorMessage));
       throw new Error(errorMessage);
     }

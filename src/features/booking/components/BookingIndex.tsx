@@ -579,60 +579,62 @@ export const BookingIndex: React.FC = () => {
                           </td>
                         </tr>
                       ) : filteredBookings.length > 0 ? (
-                    filteredBookings.map((booking: BookingItem, index) => (
-                      <tr key={booking.bookingId || index} className="hover:bg-gray-50 cursor-default">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
-                          {booking.bookingNumber || `BOKID-${Math.floor(Math.random() * 9999)}`}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {booking.type || booking.customer?.name || 'N/A'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {booking.location || 'N/A'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {booking.date
-                            ? new Date(booking.date).toLocaleDateString()
-                            : 'N/A'}{' '}
-                          {booking.startTime || ''}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {booking.specialRequests || 'N/A'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                              booking.status
-                            )}`}
-                          >
-                            {booking.status || 'Pending'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          <Button
-                            onClick={() => setShowQuotationModal(true)}
-                            className="px-4 py-2 bg-black text-white rounded-lg"
-                          >
-                            Create Event Quotation
-                          </Button>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    // No bookings found message
-                    <tr>
-                      <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
-                        <div className="flex flex-col items-center justify-center space-y-2">
-                          <div className="text-gray-400">
-                            <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                            </svg>
-                          </div>
-                          <span className="text-lg font-medium">No bookings found</span>
-                          <span className="text-sm">Try adjusting your filters or check back later</span>
-                        </div>
-                      </td>
-                    </tr>
+                        filteredBookings.map((booking: BookingItem, index) => (
+                          <tr key={booking.bookingId || index} className="hover:bg-gray-50 cursor-default">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
+                              {booking.bookingNumber || `BOKID-${Math.floor(Math.random() * 9999)}`}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {booking.type || booking.customer?.name || 'N/A'}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {booking.location || 'N/A'}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {booking.date
+                                ? new Date(booking.date).toLocaleDateString()
+                                : 'N/A'}{' '}
+                              {booking.startTime || ''}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {booking.specialRequests || 'N/A'}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span
+                                className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                                  booking.status
+                                )}`}
+                              >
+                                {booking.status || 'Pending'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              <Button
+                                onClick={() => setShowQuotationModal(true)}
+                                className="px-4 py-2 bg-black text-white rounded-lg"
+                              >
+                                Create Event Quotation
+                              </Button>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        // No bookings found message
+                        <tr>
+                          <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                            <div className="flex flex-col items-center justify-center space-y-2">
+                              <div className="text-gray-400">
+                                <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                              </div>
+                              <span className="text-lg font-medium">No bookings found</span>
+                              <span className="text-sm">Try adjusting your filters or check back later</span>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </>
                   )}
                 </tbody>
               </table>

@@ -117,6 +117,7 @@ export const BookingIndex: React.FC = () => {
   
   // Load basic stats on component mount
   useEffect(() => {
+    console.log('📋 BookingIndex: Component mounted, loading bookings...');
     // Load all bookings to get proper counts
     getBookingList(1, 100, '', {});
     getVendorList(1, 100, ''); // Load vendors for filter dropdown

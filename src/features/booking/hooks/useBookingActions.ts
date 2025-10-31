@@ -46,11 +46,38 @@ export function useBookingActions() {
         const params: any = {
           page: pageParam,
           limit: limitParam,
-          search: searchQuery,
-          ...filters,
         };
         
-        const response = await api.get(`${API_ROUTES.BOOKINGS}/admin`, {
+        // Add search query if provided
+        if (searchQuery && searchQuery.trim()) {
+          params.search = searchQuery.trim();
+        }
+        
+        // Add filters (status, dateFrom, dateTo, etc.)
+        if (filters) {
+          if (filters.status) {
+            params.status = filters.status;
+          }
+          if (filters.dateFrom) {
+            params.dateFrom = filters.dateFrom;
+          }
+          if (filters.dateTo) {
+            params.dateTo = filters.dateTo;
+          }
+          // Add any other filters
+          Object.keys(filters).forEach(key => {
+            if (!['status', 'dateFrom', 'dateTo'].includes(key) && filters[key as keyof typeof filters]) {
+              params[key] = filters[key as keyof typeof filters];
+            }
+          });
+        }
+        
+        const apiUrl = `${API_ROUTES.BOOKINGS}/all`;
+        console.log('📞 Calling booking list API:', apiUrl);
+        console.log('📞 API params:', params);
+        console.log('📞 Full URL will be:', `${api.defaults.baseURL}${apiUrl}`);
+        
+        const response = await api.get(apiUrl, {
           params,
           headers: {
             'Content-Type': 'application/json',

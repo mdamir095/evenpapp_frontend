@@ -7,12 +7,8 @@ import { API_BASE_URL } from '../config/api';
 console.log('API_BASE_URL:', API_BASE_URL);
 console.log('VITE_API_BASE_URL env var:', import.meta.env.VITE_API_BASE_URL);
 
-// Force the base URL to ensure it's correct
-const baseURL = "https://evenpappbackend-production.up.railway.app/api/v1/";
-console.log('Using baseURL:', baseURL);
-
 const api = axios.create({
-  baseURL: baseURL,
+  baseURL: API_BASE_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

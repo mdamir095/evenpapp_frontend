@@ -380,6 +380,33 @@ export function useBookingActions() {
     }
   }, [toast]);
 
+  // Get quotations list
+  const getQuotationsList = useCallback(async (page = 1, limit = 100, searchQuery = '', filters = {}) => {
+    try {
+      const params: any = {
+        page,
+        limit,
+        search: searchQuery,
+        ...filters,
+      };
+      
+      const response = await api.get(`${API_ROUTES.QUOTATIONS}`, {
+        params,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+
+      return response.data?.data || response.data;
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || err.message || 'Failed to fetch quotations';
+      toast.error(errorMessage);
+      throw err;
+    }
+  }, [toast]);
+
   return {
     getBookingList,
     fetchBookingById,
@@ -394,5 +421,6 @@ export function useBookingActions() {
     submitVendorQuote,
     getVendorRequirements,
     submitQuotation,
+    getQuotationsList,
   };
 }

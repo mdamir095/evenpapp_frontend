@@ -59,7 +59,7 @@ interface QuotationData {
   totalAmount: number;
 }
 
-type TabType = 'all' | 'completed' | 'upcoming' | 'pending' | 'rejected' | 'quotations';
+type TabType = 'all' | 'completed' | 'upcoming' | 'pending' | 'rejected';
 
 interface Tab {
   id: TabType;
@@ -67,27 +67,10 @@ interface Tab {
   count: number;
 }
 
-interface QuotationItem {
-  id?: string;
-  quotationId?: string;
-  quotationTitle: string;
-  description: string;
-  price: number;
-  breakdownOfCharges?: string;
-  discounts: number;
-  taxes: number;
-  totalAmount: number;
-  status?: string;
-  createdAt?: string;
-  bookingId?: string;
-  customerName?: string;
-  customerEmail?: string;
-}
-
 export const BookingIndex: React.FC = () => {
   const bookingState = useBooking();
   const { bookings = [] } = bookingState;
-  const { getBookingList, submitQuotation, getQuotationsList } = useBookingActions();
+  const { getBookingList, submitQuotation } = useBookingActions();
   
   // Vendor and Venue hooks
   const vendorState = useVendor();
@@ -111,35 +94,16 @@ export const BookingIndex: React.FC = () => {
     totalAmount: 0
   });
   const [filteredBookings, setFilteredBookings] = useState<BookingItem[]>([]);
-  const [quotations, setQuotations] = useState<QuotationItem[]>([]);
-  const [quotationsLoading, setQuotationsLoading] = useState(false);
   const toast = useToast();
   
   // Load basic stats on component mount
   useEffect(() => {
     console.log('📋 BookingIndex: Component mounted, loading bookings...');
-    // Load all bookings to get proper counts
+    // Load all bookings to get proper counts using booking/all API
     getBookingList(1, 100, '', {});
     getVendorList(1, 100, ''); // Load vendors for filter dropdown
     getVenueList(1, 100, ''); // Load venues for filter dropdown
-    // Load quotations
-    loadQuotations();
   }, []);
-
-  // Load quotations function
-  const loadQuotations = async () => {
-    setQuotationsLoading(true);
-    try {
-      const response = await getQuotationsList(1, 100, '', {});
-      const quotationsData = response?.data || response || [];
-      setQuotations(Array.isArray(quotationsData) ? quotationsData : []);
-    } catch (error) {
-      console.error('Error loading quotations:', error);
-      setQuotations([]);
-    } finally {
-      setQuotationsLoading(false);
-    }
-  };
 
   // Update filtered bookings when bookings data, active tab, or service type changes
   useEffect(() => {
@@ -190,7 +154,6 @@ export const BookingIndex: React.FC = () => {
   const upcomingCount = bookings.filter(b => b.status === 'confirmed').length;
   const pendingCount = bookings.filter(b => b.status === 'pending').length;
   const rejectedCount = bookings.filter(b => b.status === 'rejected' || b.status === 'cancelled').length;
-  const quotationsCount = quotations.length;
 
   // Tab configuration
   const tabs: Tab[] = [
@@ -199,17 +162,10 @@ export const BookingIndex: React.FC = () => {
     { id: 'upcoming', label: 'Upcoming', count: upcomingCount },
     { id: 'pending', label: 'Pending', count: pendingCount },
     { id: 'rejected', label: 'Rejected', count: rejectedCount },
-    { id: 'quotations', label: 'Quotations', count: quotationsCount },
   ];
 
   const handleTabChange = (tabId: TabType) => {
     setActiveTab(tabId);
-    
-    // If quotations tab, reload quotations
-    if (tabId === 'quotations') {
-      loadQuotations();
-      return;
-    }
     
     // Define filters based on selected tab
     let filters: any = {};
@@ -237,7 +193,7 @@ export const BookingIndex: React.FC = () => {
       filters.serviceType = selectedServiceType;
     }
     
-    // Fetch bookings with the selected filter
+    // Fetch bookings with the selected filter using booking/all API
     getBookingList(1, 100, '', filters);
   };
 
@@ -348,8 +304,8 @@ export const BookingIndex: React.FC = () => {
         totalAmount: 0
       });
       
-      // Reload quotations list
-      await loadQuotations();
+      // Reload bookings list using booking/all API
+      await getBookingList(1, 100, '', {});
     } catch (error) {
       console.error('Error saving quotation:', error);
       // Error handling is done in the submitQuotation function
@@ -454,189 +410,99 @@ export const BookingIndex: React.FC = () => {
             <div className="overflow-hidden border border-gray-300">
               <table className="w-full rounded-b-xl overflow-hidden">
                 <thead className="min-w-full divide-y divide-gray-200 text-left text-md bg-white">
-                  {activeTab === 'quotations' ? (
-                    <tr className="bg-neutral-100 font-normal cursor-pointer">
-                      <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold">
-                        Quotation ID
-                      </th>
-                      <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold">
-                        Title
-                      </th>
-                      <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold">
-                        Description
-                      </th>
-                      <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold">
-                        Price
-                      </th>
-                      <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold">
-                        Total Amount
-                      </th>
-                      <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold">
-                        Status
-                      </th>
-                      <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold">
-                        Created Date
-                      </th>
-                    </tr>
-                  ) : (
-                    <tr className="bg-neutral-100 font-normal cursor-pointer">
-                      <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semiboldr">
-                        Booking ID
-                      </th>
-                      <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semibold">
-                        Event Type
-                      </th>
-                      <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semibold">
-                        Location
-                      </th>
-                      <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semibold">
-                        Date & Time
-                      </th>
-                      <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semibold">
-                        Specific Requirements
-                      </th>
-                      <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semibold">
-                        Status
-                      </th>
-                      <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semibold">
-                        Action
-                      </th>
-                    </tr>
-                  )}
+                  <tr className="bg-neutral-100 font-normal cursor-pointer">
+                    <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semiboldr">
+                      Booking ID
+                    </th>
+                    <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semibold">
+                      Event Type
+                    </th>
+                    <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semibold">
+                      Location
+                    </th>
+                    <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semibold">
+                      Date & Time
+                    </th>
+                    <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semibold">
+                      Specific Requirements
+                    </th>
+                    <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semibold">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semibold">
+                      Action
+                    </th>
+                  </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200 rounded-b-sm">
-                  {activeTab === 'quotations' ? (
-                    // Quotations Table
-                    <>
-                      {quotationsLoading ? (
-                        <tr>
-                          <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
-                            <div className="flex items-center justify-center space-x-2">
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                              <span>Loading quotations...</span>
-                            </div>
+                  {/* Bookings Table */}
+                  <>
+                    {bookingState.loading ? (
+                      <tr>
+                        <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                          <div className="flex items-center justify-center space-x-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                            <span>Loading bookings...</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : filteredBookings.length > 0 ? (
+                      filteredBookings.map((booking: BookingItem, index) => (
+                        <tr key={booking.bookingId || index} className="hover:bg-gray-50 cursor-default">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
+                            {booking.bookingNumber || `BOKID-${Math.floor(Math.random() * 9999)}`}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {booking.type || booking.customer?.name || 'N/A'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {booking.location || 'N/A'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {booking.date
+                              ? new Date(booking.date).toLocaleDateString()
+                              : 'N/A'}{' '}
+                            {booking.startTime || ''}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {booking.specialRequests || 'N/A'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span
+                              className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                                booking.status
+                              )}`}
+                            >
+                              {booking.status || 'Pending'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <Button
+                              onClick={() => setShowQuotationModal(true)}
+                              className="px-4 py-2 bg-black text-white rounded-lg"
+                            >
+                              Create Event Quotation
+                            </Button>
                           </td>
                         </tr>
-                      ) : quotations.length > 0 ? (
-                        quotations.map((quotation: QuotationItem, index) => (
-                          <tr key={quotation.id || quotation.quotationId || index} className="hover:bg-gray-50 cursor-default">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
-                              {quotation.quotationId || quotation.id || `QT-${index + 1}`}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {quotation.quotationTitle || 'N/A'}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
-                              {quotation.description || 'N/A'}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              ₹{quotation.price?.toLocaleString() || '0'}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                              ₹{quotation.totalAmount?.toLocaleString() || '0'}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span
-                                className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                                  quotation.status || 'pending'
-                                )}`}
-                              >
-                                {quotation.status || 'Pending'}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {quotation.createdAt
-                                ? new Date(quotation.createdAt).toLocaleDateString()
-                                : 'N/A'}
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
-                            <div className="flex flex-col items-center justify-center space-y-2">
-                              <div className="text-gray-400">
-                                <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                              </div>
-                              <span className="text-lg font-medium">No quotations found</span>
-                              <span className="text-sm">Create a quotation for a booking to get started</span>
+                      ))
+                    ) : (
+                      // No bookings found message
+                      <tr>
+                        <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                          <div className="flex flex-col items-center justify-center space-y-2">
+                            <div className="text-gray-400">
+                              <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                              </svg>
                             </div>
-                          </td>
-                        </tr>
-                      )}
-                    </>
-                  ) : (
-                    // Bookings Table
-                    <>
-                      {bookingState.loading ? (
-                        <tr>
-                          <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
-                            <div className="flex items-center justify-center space-x-2">
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                              <span>Loading bookings...</span>
-                            </div>
-                          </td>
-                        </tr>
-                      ) : filteredBookings.length > 0 ? (
-                        filteredBookings.map((booking: BookingItem, index) => (
-                          <tr key={booking.bookingId || index} className="hover:bg-gray-50 cursor-default">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
-                              {booking.bookingNumber || `BOKID-${Math.floor(Math.random() * 9999)}`}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {booking.type || booking.customer?.name || 'N/A'}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {booking.location || 'N/A'}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {booking.date
-                                ? new Date(booking.date).toLocaleDateString()
-                                : 'N/A'}{' '}
-                              {booking.startTime || ''}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {booking.specialRequests || 'N/A'}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span
-                                className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                                  booking.status
-                                )}`}
-                              >
-                                {booking.status || 'Pending'}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              <Button
-                                onClick={() => setShowQuotationModal(true)}
-                                className="px-4 py-2 bg-black text-white rounded-lg"
-                              >
-                                Create Event Quotation
-                              </Button>
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        // No bookings found message
-                        <tr>
-                          <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
-                            <div className="flex flex-col items-center justify-center space-y-2">
-                              <div className="text-gray-400">
-                                <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                </svg>
-                              </div>
-                              <span className="text-lg font-medium">No bookings found</span>
-                              <span className="text-sm">Try adjusting your filters or check back later</span>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </>
-                  )}
+                            <span className="text-lg font-medium">No bookings found</span>
+                            <span className="text-sm">Try adjusting your filters or check back later</span>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </>
                 </tbody>
               </table>
             </div>

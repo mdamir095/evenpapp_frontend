@@ -24,12 +24,26 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: process.env.PORT ? parseInt(process.env.PORT) : 5173,
+    strictPort: false,
+    open: false,
     proxy: {
       '/api': {
         target: 'https://evenpappbackend-production.up.railway.app',
         changeOrigin: true,
         secure: true,
         rewrite: (path) => path.replace(/^\/api/, '/api')
+      }
+    },
+    fs: {
+      strict: false,
+      allow: ['..']
+    },
+    middlewareMode: false
+  },
+  build: {
+    rollupOptions: {
+      input: {
+        main: './index.html'
       }
     }
   }

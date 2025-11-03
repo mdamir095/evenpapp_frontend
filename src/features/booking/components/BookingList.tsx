@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   Calendar, 
@@ -49,6 +49,7 @@ export const BookingList: React.FC = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedBookings, setSelectedBookings] = useState<string[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -85,7 +86,7 @@ export const BookingList: React.FC = () => {
   } = useBookingActions();
 
   // Load bookings
-  const loadBookings = async () => {
+  const loadBookings = useCallback(async () => {
     const filters = {
       status: statusFilter || undefined,
       type: typeFilter || undefined,
@@ -94,23 +95,63 @@ export const BookingList: React.FC = () => {
     };
 
     await getBookingList(currentPage, rowsPerPage, searchQuery, filters);
-  };
+  }, [getBookingList, currentPage, rowsPerPage, searchQuery, statusFilter, typeFilter, dateFromFilter, dateToFilter]);
 
-  // Load data on component mount and when filters change
+  // Update URL parameters when filters change
   useEffect(() => {
-    loadBookings();
-  }, [currentPage, rowsPerPage, searchQuery, statusFilter, typeFilter, dateFromFilter, dateToFilter]);
+    if (!isInitialized) return; // Don't update URL on initial load
 
-  // Initialize filters from URL params
+    const params = new URLSearchParams();
+    
+    // Always include page and limit
+    params.set('page', currentPage.toString());
+    params.set('limit', rowsPerPage.toString());
+    
+    if (searchQuery) params.set('search', searchQuery);
+    if (statusFilter) params.set('status', statusFilter);
+    if (typeFilter) params.set('type', typeFilter);
+    if (dateFromFilter) params.set('dateFrom', dateFromFilter);
+    if (dateToFilter) params.set('dateTo', dateToFilter);
+
+    setSearchParams(params, { replace: true });
+  }, [currentPage, rowsPerPage, searchQuery, statusFilter, typeFilter, dateFromFilter, dateToFilter, isInitialized, setSearchParams]);
+
+  // Initialize filters from URL params on mount
   useEffect(() => {
+    const page = searchParams.get('page');
+    const limit = searchParams.get('limit');
     const status = searchParams.get('status');
     const type = searchParams.get('type');
     const search = searchParams.get('search');
+    const dateFrom = searchParams.get('dateFrom');
+    const dateTo = searchParams.get('dateTo');
     
+    // Set state from URL params
+    if (page) setCurrentPage(parseInt(page, 10));
+    if (limit) setRowsPerPage(parseInt(limit, 10));
     if (status) setStatusFilter(status);
     if (type) setTypeFilter(type);
     if (search) setSearchQuery(search);
-  }, [searchParams]);
+    if (dateFrom) setDateFromFilter(dateFrom);
+    if (dateTo) setDateToFilter(dateTo);
+
+    // If no URL params exist, set defaults
+    if (!page && !limit && !status && !type && !search && !dateFrom && !dateTo) {
+      const defaultParams = new URLSearchParams();
+      defaultParams.set('page', '1');
+      defaultParams.set('limit', '10');
+      setSearchParams(defaultParams, { replace: true });
+    }
+
+    setIsInitialized(true);
+  }, []); // Only run on mount
+
+  // Load data when filters change (after initialization)
+  useEffect(() => {
+    if (isInitialized) {
+      loadBookings();
+    }
+  }, [isInitialized, loadBookings]);
 
   // Table columns
   const columns = [
@@ -277,7 +318,11 @@ export const BookingList: React.FC = () => {
     setDateFromFilter('');
     setDateToFilter('');
     setCurrentPage(1);
-    setSearchParams({});
+    // Reset URL to default params
+    const params = new URLSearchParams();
+    params.set('page', '1');
+    params.set('limit', rowsPerPage.toString());
+    setSearchParams(params, { replace: true });
   };
 
   return (

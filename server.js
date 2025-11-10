@@ -58,8 +58,13 @@ function serveFile(filePath, res) {
     const content = readFileSync(filePath);
     const mimeType = getMimeType(filePath);
     
-    res.writeHead(200, { 'Content-Type': mimeType });
+    res.writeHead(200, { 
+      'Content-Type': mimeType,
+      'Content-Length': content.length,
+      'Connection': 'keep-alive'
+    });
     res.end(content);
+    console.log(`✓ Served ${filePath} (${content.length} bytes)`);
   } catch (error) {
     console.error('Error serving file:', error);
     res.writeHead(500, { 'Content-Type': 'text/plain' });
@@ -68,12 +73,13 @@ function serveFile(filePath, res) {
 }
 
 const server = createServer((req, res) => {
+  // Log incoming requests immediately
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - Headers:`, JSON.stringify(req.headers));
+  
   try {
-    // Log incoming requests
-    console.log(`${req.method} ${req.url}`);
-    
     // Health check endpoint
     if (req.url === '/health' || req.url === '/healthz') {
+      console.log('Health check requested');
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ status: 'ok', timestamp: new Date().toISOString() }));
       return;
@@ -115,13 +121,24 @@ const server = createServer((req, res) => {
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
   console.log(`Serving files from: ${distDir}`);
+  console.log(`PORT environment variable: ${process.env.PORT}`);
   
   // Verify index.html exists
   const indexPath = join(distDir, 'index.html');
   if (existsSync(indexPath)) {
     console.log('✓ index.html found');
+    const stats = statSync(indexPath);
+    console.log(`  File size: ${stats.size} bytes`);
   } else {
     console.error('✗ index.html NOT found in dist directory!');
+  }
+  
+  // Test that we can actually read the file
+  try {
+    const testContent = readFileSync(indexPath, 'utf8');
+    console.log(`✓ Successfully read index.html (${testContent.length} chars)`);
+  } catch (error) {
+    console.error('✗ Error reading index.html:', error);
   }
 });
 

@@ -115,6 +115,14 @@ const server = createServer((req, res) => {
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
   console.log(`Serving files from: ${distDir}`);
+  
+  // Verify index.html exists
+  const indexPath = join(distDir, 'index.html');
+  if (existsSync(indexPath)) {
+    console.log('✓ index.html found');
+  } else {
+    console.error('✗ index.html NOT found in dist directory!');
+  }
 });
 
 server.on('error', (error) => {

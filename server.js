@@ -1,0 +1,106 @@
+import { createServer } from 'http';
+import { readFileSync, existsSync, statSync } from 'fs';
+import { join, extname } from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const PORT = process.env.PORT || 5173;
+const distDir = join(__dirname, 'dist');
+
+// Check if dist directory exists
+if (!existsSync(distDir)) {
+  console.error(`Error: dist directory not found at ${distDir}`);
+  console.error('Please run "npm run build" first');
+  process.exit(1);
+}
+
+const MIME_TYPES = {
+  '.html': 'text/html',
+  '.js': 'text/javascript',
+  '.css': 'text/css',
+  '.json': 'application/json',
+  '.png': 'image/png',
+  '.jpg': 'image/jpg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon',
+  '.woff': 'application/font-woff',
+  '.woff2': 'application/font-woff2',
+  '.ttf': 'application/font-ttf',
+  '.eot': 'application/vnd.ms-fontobject',
+  '.otf': 'application/font-otf',
+};
+
+function getMimeType(filePath) {
+  const ext = extname(filePath).toLowerCase();
+  return MIME_TYPES[ext] || 'application/octet-stream';
+}
+
+function serveFile(filePath, res) {
+  try {
+    if (!existsSync(filePath)) {
+      res.writeHead(404, { 'Content-Type': 'text/plain' });
+      res.end('File not found');
+      return;
+    }
+
+    const stats = statSync(filePath);
+    if (!stats.isFile()) {
+      res.writeHead(404, { 'Content-Type': 'text/plain' });
+      res.end('Not a file');
+      return;
+    }
+
+    const content = readFileSync(filePath);
+    const mimeType = getMimeType(filePath);
+    
+    res.writeHead(200, { 'Content-Type': mimeType });
+    res.end(content);
+  } catch (error) {
+    console.error('Error serving file:', error);
+    res.writeHead(500, { 'Content-Type': 'text/plain' });
+    res.end('Internal server error');
+  }
+}
+
+const server = createServer((req, res) => {
+  let filePath = req.url === '/' ? '/index.html' : req.url;
+  
+  // Remove query string
+  filePath = filePath.split('?')[0];
+  
+  // Security: prevent directory traversal
+  if (filePath.includes('..')) {
+    res.writeHead(403, { 'Content-Type': 'text/plain' });
+    res.end('Forbidden');
+    return;
+  }
+
+  const fullPath = join(distDir, filePath);
+
+  // If file doesn't exist and it's not an API route, serve index.html (for SPA routing)
+  if (!existsSync(fullPath) && !filePath.startsWith('/api')) {
+    const indexPath = join(distDir, 'index.html');
+    if (existsSync(indexPath)) {
+      serveFile(indexPath, res);
+      return;
+    }
+  }
+
+  serveFile(fullPath, res);
+});
+
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on http://0.0.0.0:${PORT}`);
+  console.log(`Serving files from: ${distDir}`);
+});
+
+server.on('error', (error) => {
+  console.error('Server error:', error);
+  process.exit(1);
+});
+

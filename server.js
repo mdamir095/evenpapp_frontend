@@ -13,8 +13,8 @@ const __dirname = dirname(__filename);
 const PORT = process.env.PORT || 5173;
 const distDir = join(__dirname, 'dist');
 
-// Backend API configuration
-const API_BASE_URL = process.env.VITE_API_BASE_URL || 'https://evenpappbackend-production.up.railway.app';
+// Backend API configuration - should include /api/v1
+const API_BASE_URL = process.env.VITE_API_BASE_URL || 'https://evenpappbackend-production.up.railway.app/api/v1';
 console.log(`Backend API URL: ${API_BASE_URL}`);
 
 // Check if dist directory exists
@@ -53,9 +53,12 @@ function proxyRequest(req, res, requestId) {
     const isHttps = backendUrl.protocol === 'https:';
     const requestModule = isHttps ? httpsRequest : httpRequest;
     
-    // Construct the full backend URL with the API path
-    const targetPath = req.url; // This already includes /api/...
-    const targetUrl = `${API_BASE_URL}${targetPath}`;
+    // Request comes as /api/v1/users
+    // Base URL is https://backend.com/api/v1
+    // We want to proxy to: https://backend.com/api/v1/users
+    // So we use the request path as-is since it already includes /api/v1
+    const targetPath = req.url; // e.g., /api/v1/users
+    const targetUrl = `${backendUrl.origin}${targetPath}`;
     
     console.log(`[${requestId}] Proxying ${req.method} ${req.url} to: ${targetUrl}`);
     
@@ -68,7 +71,7 @@ function proxyRequest(req, res, requestId) {
     const options = {
       hostname: backendUrl.hostname,
       port: backendUrl.port || (isHttps ? 443 : 80),
-      path: targetPath, // Use the request path directly (includes /api/...)
+      path: targetPath,
       method: req.method,
       headers: headers
     };

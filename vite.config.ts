@@ -29,7 +29,7 @@ export default defineConfig({
     open: false,
     proxy: {
       '/api': {
-        target: 'https://evenpappbackend-production.up.railway.app',
+        target: 'https://evenpappbackend-production.up.railway.app/api/v1',
         changeOrigin: true,
         secure: true,
         rewrite: (path) => path.replace(/^\/api/, '/api')

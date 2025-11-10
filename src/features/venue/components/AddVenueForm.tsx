@@ -170,8 +170,12 @@ const AddVenueForm: React.FC = () => {
                   
                   // If the URL is relative, construct the full URL
                   if (imageUrl && imageUrl.startsWith('/uploads/')) {
-                    const baseUrl = import.meta.env.VITE_API_BASE_URL || "https://evenpappbackend-production.up.railway.app/api/v1/";
-                    imageUrl = `${baseUrl.replace('/api/v1/', '')}${imageUrl}`;
+                    // Use IMAGE_BASE_URL from config, or construct from API base URL
+                    const imageBaseUrl = import.meta.env.VITE_IMAGE_BASE_URL || 
+                      (import.meta.env.VITE_API_BASE_URL 
+                        ? import.meta.env.VITE_API_BASE_URL.replace('/api/v1/', '') 
+                        : 'http://localhost:10030');
+                    imageUrl = `${imageBaseUrl}${imageUrl}`;
                   }
                   
                   return {

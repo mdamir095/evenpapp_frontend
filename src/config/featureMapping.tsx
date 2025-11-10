@@ -116,6 +116,18 @@ export const FEATURE_MAPPING: Record<string, FeatureConfig> = {
     icon: <Calendar size={24} />,
     defaultLabel: 'Booking Management',
   },
+  quotation_management: {
+    uniqueId: 'quotation_management',
+    route: '/quotation-management',
+    icon: <FileText size={24} />,
+    defaultLabel: 'Quotation Management',
+  },
+  quatation_management: {
+    uniqueId: 'quatation_management',
+    route: '/quotation-management',
+    icon: <FileText size={24} />,
+    defaultLabel: 'Quotation Management',
+  },
 };
 
 // Helper function to get feature config by uniqueId
@@ -163,6 +175,7 @@ export const generateAllMenuItems = (): MenuItemFromFeature[] => {
     'vendor_category',
     'vendor_management',
     'booking_management',
+    'quotation_management',
     'content_policy',
   ];
 

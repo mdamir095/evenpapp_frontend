@@ -57,7 +57,7 @@ interface QuotationData {
   additionalNotes: string;
 }
 
-type TabType = 'all' | 'completed' | 'upcoming' | 'pending' | 'rejected';
+type TabType = 'all' | 'cancelled' | 'pending' | 'rejected';
 
 export const BookingManagement: React.FC = () => {
   const navigate = useNavigate();
@@ -142,8 +142,6 @@ export const BookingManagement: React.FC = () => {
         return 'text-yellow-600 bg-yellow-100';
       case 'cancelled':
         return 'text-red-600 bg-red-100';
-      case 'completed':
-        return 'text-blue-600 bg-blue-100';
       default:
         return 'text-gray-600 bg-gray-100';
     }
@@ -207,8 +205,7 @@ export const BookingManagement: React.FC = () => {
 
   const tabs = [
     { id: 'all', label: 'All Bookings', count: stats.totalBookings },
-    { id: 'completed', label: 'Completed', count: stats.confirmedBookings },
-    { id: 'upcoming', label: 'Upcoming', count: stats.upcomingBookings },
+    { id: 'cancelled', label: 'Cancelled', count: stats.cancelledBookings },
     { id: 'pending', label: 'Pending', count: stats.pendingBookings },
     { id: 'rejected', label: 'Rejected', count: stats.cancelledBookings },
   ];
@@ -277,8 +274,7 @@ export const BookingManagement: React.FC = () => {
                     }`}
                   >
                     <span className={`w-2 h-2 rounded-full ${
-                      tab.id === 'completed' ? 'bg-green-600' :
-                      tab.id === 'upcoming' ? 'bg-black' :
+                      tab.id === 'cancelled' ? 'bg-gray-600' :
                       tab.id === 'pending' ? 'bg-gray-500' :
                       tab.id === 'rejected' ? 'bg-red-600' :
                       'bg-blue-600'
@@ -293,88 +289,107 @@ export const BookingManagement: React.FC = () => {
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-xl border border-gray-300 mt-4">
-            <table className="w-full">
-              <thead className="min-w-full divide-y divide-gray-200 text-left text-md bg-white">
+          <div className="w-full overflow-x-auto rounded-xl border border-gray-300 mt-4">
+            <div className="max-h-[600px] overflow-y-auto">
+              <table className="min-w-full table-fixed">
+                <thead className="sticky top-0 z-10 divide-y divide-gray-200 text-left text-md bg-white">
                 <tr className='bg-neutral-100 font-norma'>
-                  <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semibold uppercase tracking-wider">
+                  <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold uppercase tracking-wider w-[120px]">
                     Booking ID
                   </th>
-                  <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semibol uppercase tracking-wider">
-                  Event Type
+                  <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold uppercase tracking-wider w-[150px]">
+                    Event Type
                   </th>
-                  <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semibol uppercase tracking-wider">
-                  Location
+                  <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold uppercase tracking-wider w-[200px]">
+                    Location
                   </th>
-                  <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semibol uppercase tracking-wider">
+                  <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold uppercase tracking-wider w-[150px]">
                     Date & Time
                   </th>
-                  <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semibol uppercase tracking-wider">
-                  Specific Requirements
+                  <th className="px-4 py-3 cursor-pointer border-b border-neutral-300 text-sm font-semibold uppercase tracking-wider w-[200px]">
+                    Specific Requirements
                   </th>
-                  <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semibol uppercase tracking-wider">
+                  <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold uppercase tracking-wider w-[120px]">
                     Status
                   </th>
-                  <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semibol uppercase tracking-wider">
-                   Action
+                  <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold uppercase tracking-wider w-[180px]">
+                    Action
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {recentBookings.map((booking) => (
                   <tr key={booking.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
                       {booking.bookingNumber}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                       {booking.customerName}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {booking.serviceName}
+                    <td className="px-4 py-4 text-sm text-gray-900">
+                      <div className="max-w-[200px] truncate" title={booking.serviceName}>
+                        {booking.serviceName}
+                      </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                       {new Date(booking.date).toLocaleDateString()} {booking.time}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 text-sm text-gray-900">
+                      <div className="max-w-[200px] truncate" title="Catering, Photography, Venue">
+                        Catering, Photography, Venue
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(booking.status)}`}>
                         {booking.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      ₹{booking.amount.toLocaleString()}
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <Button
+                        variant="muted"
+                        size="sm"
+                        onClick={() => setShowQuotationModal(true)}
+                        className="text-xs px-3 py-2 whitespace-nowrap"
+                      >
+                        Create Event Quotation
+                      </Button>
                     </td>
                   </tr>
                 ))}
-                <tr  className="hover:bg-blue-50 border-b border-gray-100">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
+                <tr className="hover:bg-blue-50 border-b border-gray-100">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
                      BOKID-2345
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                      Wedding
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                     Mumbai
+                    <td className="px-4 py-4 text-sm text-gray-900">
+                      <div className="max-w-[200px] truncate" title="Mumbai">
+                        Mumbai
+                      </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                       10:00 AM
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                     Catering, Photography, Venue
+                    <td className="px-4 py-4 text-sm text-gray-900">
+                      <div className="max-w-[200px] truncate" title="Catering, Photography, Venue">
+                        Catering, Photography, Venue
+                      </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full text-green-600`}>
                         Complete
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       <div className="flex items-center space-x-2">
                         <Button
                           variant="muted"
                           size="sm"
                           onClick={() => setShowQuotationModal(true)}
-                          className="text-xs px-2 py-1"
+                          className="text-xs px-3 py-2 whitespace-nowrap"
                         >
-                          Quotation
+                          Create Event Quotation
                         </Button>
                         <RowActionMenu />
                       </div>
@@ -382,7 +397,7 @@ export const BookingManagement: React.FC = () => {
                   </tr>
               </tbody>
             </table>
-           
+            </div>
           </div>
 
           

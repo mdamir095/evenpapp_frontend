@@ -85,19 +85,23 @@ export function useBookingActions() {
           },
         });
 
-        const { bookings, total, page, limit } = response.data;
+        // Handle new API response structure: { status: "OK", data: { bookings, total, page, limit } }
+        const responseData = response.data?.data || response.data;
+        const { bookings, total, page, limit } = responseData;
         
         // Transform backend data to frontend format
         const transformedBookings = (bookings || []).map((booking: any) => ({
           id: booking.id || booking._id || booking.bookingId,
+          bookingId: booking.bookingId || booking.id || booking._id,
           bookingNumber: booking.bookingId || booking.id || booking._id,
           customerName: booking.customerName || booking.userName || 'Unknown Customer',
           customerEmail: booking.customerEmail || booking.userEmail || 'unknown@example.com',
           serviceName: booking.title || booking.serviceName || 'Unknown Service',
           startDateTime: booking.eventDate || booking.startDateTime || new Date().toISOString(),
           endDateTime: booking.endDate || booking.endDateTime || new Date().toISOString(),
-          status: booking.bookingStatus || booking.status || 'pending',
-          amount: booking.price || booking.amount || 0,
+          status: booking.status || booking.bookingStatus || 'pending',
+          bookingStatus: booking.bookingStatus || booking.status || 'pending',
+          amount: booking.amount || booking.price || 0,
           createdAt: booking.createdAt || new Date().toISOString(),
           assignedStaff: booking.assignedStaff || null,
           // Additional fields from backend
@@ -111,6 +115,17 @@ export function useBookingActions() {
           venueId: booking.venueId,
           vendorId: booking.vendorId,
           userId: booking.userId,
+          // Date and time fields
+          eventDate: booking.eventDate,
+          endDate: booking.endDate,
+          startTime: booking.startTime,
+          endTime: booking.endTime,
+          date: booking.eventDate || booking.startDateTime,
+          // Special requirements
+          specialRequirement: booking.specialRequirement,
+          specialRequests: booking.specialRequirement,
+          // Type field
+          type: booking.bookingType || booking.type,
         }));
         
         
@@ -226,7 +241,11 @@ export function useBookingActions() {
   }, [dispatch]);
 
   // Update booking status
-  const updateBookingStatus = useCallback(async (bookingId: string, status: string) => {
+  const updateBookingStatus = useCallback(async (
+    bookingId: string, 
+    status: string, 
+    reloadCallback?: () => void
+  ) => {
     dispatch(updateBookingStatusStart());
     try {
       const response = await api.patch(`${API_ROUTES.BOOKINGS}/${bookingId}/status`, 
@@ -239,9 +258,23 @@ export function useBookingActions() {
         }
       );
 
-      dispatch(updateBookingStatusSuccess({ bookingId, status }));
+      // Handle response structure: { status: "OK", data: { booking, ... } } or { booking, ... }
+      const responseData = response.data?.data || response.data;
+      const updatedBooking = responseData?.booking || responseData;
+      
+      // Update status in Redux state using the booking ID from response or the one passed
+      const finalBookingId = updatedBooking?.id || updatedBooking?.bookingId || bookingId;
+      const finalStatus = updatedBooking?.status || updatedBooking?.bookingStatus || status;
+      
+      dispatch(updateBookingStatusSuccess({ bookingId: finalBookingId, status: finalStatus }));
+      
+      // Reload bookings from database via callback to ensure we have the latest data
+      if (reloadCallback) {
+        reloadCallback();
+      }
+      
       toast.success(`Booking ${status} successfully!`);
-      return response.data;
+      return updatedBooking || responseData;
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message || err.message || 'Failed to update booking status';
@@ -251,8 +284,91 @@ export function useBookingActions() {
     }
   }, [dispatch]);
 
+  // Accept booking
+  const acceptBooking = useCallback(async (
+    bookingId: string,
+    notes?: string,
+    reloadCallback?: () => void
+  ) => {
+    dispatch(updateBookingStatusStart());
+    try {
+      const requestBody = notes ? { bookingId, notes } : { bookingId };
+      const response = await api.post(`${API_ROUTES.BOOKINGS}/accept`, requestBody, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        }
+      });
+
+      // Handle response structure
+      const responseData = response.data?.data || response.data;
+      const acceptedBooking = responseData?.booking || responseData;
+      
+      // Update status in Redux store
+      const finalBookingId = acceptedBooking?.id || acceptedBooking?.bookingId || bookingId;
+      dispatch(updateBookingStatusSuccess({ bookingId: finalBookingId, status: 'confirmed' }));
+      
+      // Reload bookings from database via callback to ensure we have the latest data
+      if (reloadCallback) {
+        reloadCallback();
+      }
+      
+      toast.success('Booking accepted successfully!');
+      return acceptedBooking || responseData;
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || err.message || 'Failed to accept booking';
+      dispatch(updateBookingStatusFailure(errorMessage));
+      toast.error(errorMessage);
+      throw err;
+    }
+  }, [dispatch, toast]);
+
+  // Reject booking
+  const rejectBooking = useCallback(async (
+    bookingId: string,
+    reason?: string,
+    reloadCallback?: () => void
+  ) => {
+    dispatch(updateBookingStatusStart());
+    try {
+      const requestBody = reason ? { bookingId, reason } : { bookingId };
+      const response = await api.post(`${API_ROUTES.BOOKINGS}/reject`, requestBody, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        }
+      });
+
+      // Handle response structure
+      const responseData = response.data?.data || response.data;
+      const rejectedBooking = responseData?.booking || responseData;
+      
+      // Update status in Redux store
+      const finalBookingId = rejectedBooking?.id || rejectedBooking?.bookingId || bookingId;
+      dispatch(updateBookingStatusSuccess({ bookingId: finalBookingId, status: 'rejected' }));
+      
+      // Reload bookings from database via callback to ensure we have the latest data
+      if (reloadCallback) {
+        reloadCallback();
+      }
+      
+      toast.success('Booking rejected successfully!');
+      return rejectedBooking || responseData;
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || err.message || 'Failed to reject booking';
+      dispatch(updateBookingStatusFailure(errorMessage));
+      toast.error(errorMessage);
+      throw err;
+    }
+  }, [dispatch, toast]);
+
   // Cancel booking
-  const cancelBooking = useCallback(async (cancelData: CancelType) => {
+  const cancelBooking = useCallback(async (
+    cancelData: CancelType,
+    reloadCallback?: () => void
+  ) => {
     try {
       const response = await api.post(`${API_ROUTES.BOOKINGS}/${cancelData.bookingId}/cancel`, cancelData, {
         headers: {
@@ -261,10 +377,21 @@ export function useBookingActions() {
         }
       });
 
+      // Handle response structure
+      const responseData = response.data?.data || response.data;
+      const cancelledBooking = responseData?.booking || responseData;
+      
       // Update status in Redux store
-      dispatch(updateBookingStatusSuccess({ bookingId: cancelData.bookingId, status: 'cancelled' }));
+      const finalBookingId = cancelledBooking?.id || cancelledBooking?.bookingId || cancelData.bookingId;
+      dispatch(updateBookingStatusSuccess({ bookingId: finalBookingId, status: 'cancelled' }));
+      
+      // Reload bookings from database via callback to ensure we have the latest data
+      if (reloadCallback) {
+        reloadCallback();
+      }
+      
       toast.success('Booking cancelled successfully!');
-      return response.data;
+      return cancelledBooking || responseData;
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message || err.message || 'Failed to cancel booking';
@@ -434,6 +561,112 @@ export function useBookingActions() {
     }
   }, [toast]);
 
+  // Approve quotation (similar to accept booking)
+  const approveQuotation = useCallback(async (
+    quotationId: string,
+    notes?: string,
+    reloadCallback?: () => void
+  ) => {
+    try {
+      const requestBody: any = { quotationId };
+      if (notes) requestBody.notes = notes;
+      
+      const response = await api.put(`${API_ROUTES.QUOTATIONS}/${quotationId}`, {
+        status: 'approved',
+        ...requestBody
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        }
+      });
+
+      const responseData = response.data?.data || response.data;
+      
+      if (reloadCallback) {
+        reloadCallback();
+      }
+      
+      toast.success('Quotation approved successfully!');
+      return responseData;
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || err.message || 'Failed to approve quotation';
+      toast.error(errorMessage);
+      throw err;
+    }
+  }, [toast]);
+
+  // Reject quotation (similar to reject booking)
+  const rejectQuotation = useCallback(async (
+    quotationId: string,
+    reason?: string,
+    reloadCallback?: () => void
+  ) => {
+    try {
+      const requestBody: any = { quotationId };
+      if (reason) requestBody.reason = reason;
+      
+      const response = await api.put(`${API_ROUTES.QUOTATIONS}/${quotationId}`, {
+        status: 'rejected',
+        ...requestBody
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        }
+      });
+
+      const responseData = response.data?.data || response.data;
+      
+      if (reloadCallback) {
+        reloadCallback();
+      }
+      
+      toast.success('Quotation rejected successfully!');
+      return responseData;
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || err.message || 'Failed to reject quotation';
+      toast.error(errorMessage);
+      throw err;
+    }
+  }, [toast]);
+
+  // Update quotation status
+  const updateQuotationStatus = useCallback(async (
+    quotationId: string,
+    status: string,
+    notes?: string,
+    reloadCallback?: () => void
+  ) => {
+    try {
+      const requestBody: any = { status };
+      if (notes) requestBody.notes = notes;
+      
+      const response = await api.put(`${API_ROUTES.QUOTATIONS}/${quotationId}`, requestBody, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        }
+      });
+
+      const responseData = response.data?.data || response.data;
+      
+      if (reloadCallback) {
+        reloadCallback();
+      }
+      
+      toast.success(`Quotation ${status} successfully!`);
+      return responseData;
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || err.message || `Failed to ${status} quotation`;
+      toast.error(errorMessage);
+      throw err;
+    }
+  }, [toast]);
+
   return {
     getBookingList,
     fetchBookingById,
@@ -441,6 +674,8 @@ export function useBookingActions() {
     updateBooking,
     removeBooking,
     updateBookingStatus,
+    acceptBooking,
+    rejectBooking,
     cancelBooking,
     rescheduleBooking,
     checkAvailability,
@@ -449,5 +684,8 @@ export function useBookingActions() {
     getVendorRequirements,
     submitQuotation,
     getQuotationsList,
+    approveQuotation,
+    rejectQuotation,
+    updateQuotationStatus,
   };
 }

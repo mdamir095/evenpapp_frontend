@@ -218,19 +218,25 @@ export const VendorBookingList: React.FC = () => {
           navigate(`/vendor/chat/${row.id}`);
           break;
         case 'confirm':
-          await updateBookingStatus(row.id, 'confirmed');
-          toast.success('Booking confirmed successfully!');
+          await updateBookingStatus(row.id, 'confirmed', () => {
+            // Reload bookings from database after status update
+            loadVendorBookings();
+          });
           break;
         case 'reject':
           const reason = window.prompt('Please provide a reason for rejection:');
           if (reason) {
-            await updateBookingStatus(row.id, 'rejected');
-            toast.success('Booking rejected successfully!');
+            await updateBookingStatus(row.id, 'rejected', () => {
+              // Reload bookings from database after status update
+              loadVendorBookings();
+            });
           }
           break;
         case 'complete':
-          await updateBookingStatus(row.id, 'completed');
-          toast.success('Booking marked as completed!');
+          await updateBookingStatus(row.id, 'completed', () => {
+            // Reload bookings from database after status update
+            loadVendorBookings();
+          });
           break;
       }
     } catch (error) {

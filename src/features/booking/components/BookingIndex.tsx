@@ -1,13 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Filter, X } from 'lucide-react';
+import { Filter, X, CheckCircle, XCircle } from 'lucide-react';
 import Layout from '../../../layouts/Layout';
 import Breadcrumbs from '../../../components/common/BreadCrumb';
 import { useBooking } from '../hooks/useBooking';
 import { useBookingActions } from '../hooks/useBookingActions';
-import { useVendor } from '../../../features/vendorManagement/hooks/useVendor';
-import { useVendorActions } from '../../../features/vendorManagement/hooks/useVendorActions';
-import { useVenue } from '../../../features/venue/hooks/useVenue';
-import { useVenueActions } from '../../../features/venue/hooks/useVenueAction';
 import { RowActionMenu } from '../../../components/atoms/RowActionMenu';
 import { DropDown } from '../../../components/atoms/DropDown';
 import { Button } from '../../../components/atoms/Button';
@@ -59,7 +55,7 @@ interface QuotationData {
   totalAmount: number;
 }
 
-type TabType = 'all' | 'completed' | 'upcoming' | 'pending' | 'rejected';
+type TabType = 'all' | 'cancelled' | 'pending' | 'rejected';
 
 interface Tab {
   id: TabType;
@@ -70,18 +66,10 @@ interface Tab {
 export const BookingIndex: React.FC = () => {
   const bookingState = useBooking();
   const { bookings = [] } = bookingState;
-  const { getBookingList, submitQuotation } = useBookingActions();
-  
-  // Vendor and Venue hooks
-  const vendorState = useVendor();
-  const { getVendorList } = useVendorActions();
-  const venueState = useVenue();
-  const { getVenueList } = useVenueActions();
+  const { getBookingList, submitQuotation, acceptBooking, rejectBooking } = useBookingActions();
   
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [open, setOpen] = useState(false);
-  const [selectedVendor, setSelectedVendor] = useState<string>('');
-  const [selectedVenue, setSelectedVenue] = useState<string>('');
   const [selectedServiceType, setSelectedServiceType] = useState<string>('all');
   const [showQuotationModal, setShowQuotationModal] = useState(false);
   const [quotationData, setQuotationData] = useState<QuotationData>({
@@ -101,27 +89,34 @@ export const BookingIndex: React.FC = () => {
     console.log('📋 BookingIndex: Component mounted, loading bookings...');
     // Load all bookings to get proper counts using booking/all API
     getBookingList(1, 100, '', {});
-    getVendorList(1, 100, ''); // Load vendors for filter dropdown
-    getVenueList(1, 100, ''); // Load venues for filter dropdown
   }, []);
 
   // Update filtered bookings when bookings data, active tab, or service type changes
   useEffect(() => {
     let filtered = [...bookings];
     
+    // Helper function to get status (check both status and bookingStatus fields, case-insensitive)
+    const getStatus = (booking: any) => {
+      const status = booking.status || booking.bookingStatus || '';
+      return status.toLowerCase();
+    };
+    
     // Filter by status tab
     switch (activeTab) {
-      case 'completed':
-        filtered = bookings.filter(b => b.status === 'completed');
-        break;
-      case 'upcoming':
-        filtered = bookings.filter(b => b.status === 'confirmed');
+      case 'cancelled':
+        filtered = bookings.filter(b => {
+          const status = getStatus(b);
+          return status === 'cancelled' || status === 'CANCELLED';
+        });
         break;
       case 'pending':
-        filtered = bookings.filter(b => b.status === 'pending');
+        filtered = bookings.filter(b => getStatus(b) === 'pending');
         break;
       case 'rejected':
-        filtered = bookings.filter(b => b.status === 'rejected' || b.status === 'cancelled');
+        filtered = bookings.filter(b => {
+          const status = getStatus(b);
+          return status === 'cancelled';
+        });
         break;
       case 'all':
       default:
@@ -134,12 +129,16 @@ export const BookingIndex: React.FC = () => {
       filtered = filtered.filter(booking => {
         // Check if booking has vendor services
         if (selectedServiceType === 'vendor') {
-          return booking.vendor || 
+          return booking.bookingType === 'vendor' || 
+                 booking.vendorId ||
+                 booking.vendor || 
                  booking.services?.some((service: any) => service.type === 'vendor' || service.vendorId);
         }
         // Check if booking has venue services
         if (selectedServiceType === 'venue') {
-          return booking.services?.some((service: any) => service.type === 'venue' || service.venueId);
+          return booking.bookingType === 'venue' ||
+                 booking.venueId ||
+                 booking.services?.some((service: any) => service.type === 'venue' || service.venueId);
         }
         return true;
       });
@@ -148,18 +147,28 @@ export const BookingIndex: React.FC = () => {
     setFilteredBookings(filtered);
   }, [bookings, activeTab, selectedServiceType]);
 
+  // Helper function to get status (check both status and bookingStatus fields, case-insensitive)
+  const getBookingStatus = (booking: any) => {
+    const status = booking.status || booking.bookingStatus || '';
+    return status.toLowerCase();
+  };
+
   // Calculate counts for each tab
   const allCount = bookings.length;
-  const completedCount = bookings.filter(b => b.status === 'completed').length;
-  const upcomingCount = bookings.filter(b => b.status === 'confirmed').length;
-  const pendingCount = bookings.filter(b => b.status === 'pending').length;
-  const rejectedCount = bookings.filter(b => b.status === 'rejected' || b.status === 'cancelled').length;
+  const cancelledCount = bookings.filter(b => {
+    const status = getBookingStatus(b);
+    return status === 'cancelled' || status === 'CANCELLED';
+  }).length;
+  const pendingCount = bookings.filter(b => getBookingStatus(b) === 'pending').length;
+  const rejectedCount = bookings.filter(b => {
+    const status = getBookingStatus(b);
+    return status === 'cancelled';
+  }).length;
 
   // Tab configuration
   const tabs: Tab[] = [
     { id: 'all', label: 'All Bookings', count: allCount },
-    { id: 'completed', label: 'Completed', count: completedCount },
-    { id: 'upcoming', label: 'Upcoming', count: upcomingCount },
+    { id: 'cancelled', label: 'Cancelled', count: cancelledCount },
     { id: 'pending', label: 'Pending', count: pendingCount },
     { id: 'rejected', label: 'Rejected', count: rejectedCount },
   ];
@@ -170,17 +179,14 @@ export const BookingIndex: React.FC = () => {
     // Define filters based on selected tab
     let filters: any = {};
     switch (tabId) {
-      case 'completed':
-        filters = { status: 'completed' };
-        break;
-      case 'upcoming':
-        filters = { status: 'confirmed' };
+      case 'cancelled':
+        filters = { status: 'CANCELLED' };
         break;
       case 'pending':
         filters = { status: 'pending' };
         break;
       case 'rejected':
-        filters = { status: ['rejected', 'cancelled'] };
+        filters = { status: 'CANCELLED' };
         break;
       case 'all':
       default:
@@ -327,17 +333,61 @@ export const BookingIndex: React.FC = () => {
   };
 
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return 'bg-green-100 text-green-600';
+    const statusLower = status?.toLowerCase() || '';
+    switch (statusLower) {
       case 'pending':
         return 'bg-yellow-100 text-yellow-600';
       case 'confirmed':
         return 'bg-blue-100 text-blue-600';
       case 'rejected':
+      case 'cancelled':
         return 'bg-gray-100 text-gray-600';
       default:
         return 'bg-gray-100 text-gray-600';
+    }
+  };
+
+  // Handle accept booking
+  const handleAcceptBooking = async (booking: any) => {
+    try {
+      const bookingId = booking.bookingNumber || booking.bookingId;
+      if (!bookingId) {
+        toast.error('Booking ID not found');
+        return;
+      }
+
+      if (window.confirm('Are you sure you want to accept this booking request?')) {
+        const notes = window.prompt('Add notes (optional):') || undefined;
+        await acceptBooking(bookingId, notes, () => {
+          // Reload bookings after status update
+          getBookingList(1, 100, '', {});
+        });
+      }
+    } catch (error) {
+      console.error('Error accepting booking:', error);
+      // Error handling is done in the acceptBooking function
+    }
+  };
+
+  // Handle reject booking
+  const handleRejectBooking = async (booking: any) => {
+    try {
+      const bookingId = booking.bookingNumber || booking.bookingId;
+      if (!bookingId) {
+        toast.error('Booking ID not found');
+        return;
+      }
+
+      const reason = window.prompt('Please provide a reason for rejecting this booking:');
+      if (reason) {
+        await rejectBooking(bookingId, reason, () => {
+          // Reload bookings after status update
+          getBookingList(1, 100, '', {});
+        });
+      }
+    } catch (error) {
+      console.error('Error rejecting booking:', error);
+      // Error handling is done in the rejectBooking function
     }
   };
 
@@ -385,10 +435,8 @@ export const BookingIndex: React.FC = () => {
                     >
                       <span
                         className={`w-2 h-2 rounded-full ${
-                          tab.id === 'completed'
-                            ? 'bg-green-600'
-                            : tab.id === 'upcoming'
-                            ? 'bg-blue-600'
+                          tab.id === 'cancelled'
+                            ? 'bg-gray-600'
                             : tab.id === 'pending'
                             ? 'bg-yellow-600'
                             : tab.id === 'rejected'
@@ -407,31 +455,32 @@ export const BookingIndex: React.FC = () => {
             </div>
 
             {/* Table */}
-            <div className="overflow-hidden border border-gray-300">
-              <table className="w-full rounded-b-xl overflow-hidden">
-                <thead className="min-w-full divide-y divide-gray-200 text-left text-md bg-white">
+            <div className="w-full overflow-x-auto border border-gray-300 rounded-b-xl">
+              <div className="max-h-[600px] overflow-y-auto">
+                <table className="min-w-full rounded-b-xl table-fixed">
+                  <thead className="sticky top-0 z-10 divide-y divide-gray-200 text-left text-md bg-white">
                   <tr className="bg-neutral-100 font-normal cursor-pointer">
-                    <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semiboldr">
-                      Booking ID
-                    </th>
-                    <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semibold">
-                      Event Type
-                    </th>
-                    <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semibold">
-                      Location
-                    </th>
-                    <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semibold">
-                      Date & Time
-                    </th>
-                    <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semibold">
-                      Specific Requirements
-                    </th>
-                    <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semibold">
-                      Status
-                    </th>
-                    <th className="px-4 py-3 cursor-pointer whitespace-nowrap  border-b border-neutral-300 text-sm font-semibold">
-                      Action
-                    </th>
+                  <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold w-[120px]">
+                    Booking ID
+                  </th>
+                  <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold w-[150px]">
+                    Event Type
+                  </th>
+                  <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold w-[200px]">
+                    Location
+                  </th>
+                  <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold w-[150px]">
+                    Date & Time
+                  </th>
+                  <th className="px-4 py-3 cursor-pointer border-b border-neutral-300 text-sm font-semibold w-[200px]">
+                    Specific Requirements
+                  </th>
+                  <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold w-[120px]">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold w-[250px]">
+                    Action
+                  </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200 rounded-b-sm">
@@ -439,7 +488,7 @@ export const BookingIndex: React.FC = () => {
                   <>
                     {bookingState.loading ? (
                       <tr>
-                        <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                        <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
                           <div className="flex items-center justify-center space-x-2">
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                             <span>Loading bookings...</span>
@@ -447,49 +496,76 @@ export const BookingIndex: React.FC = () => {
                         </td>
                       </tr>
                     ) : filteredBookings.length > 0 ? (
-                      filteredBookings.map((booking: BookingItem, index) => (
-                        <tr key={booking.bookingId || index} className="hover:bg-gray-50 cursor-default">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
-                            {booking.bookingNumber || `BOKID-${Math.floor(Math.random() * 9999)}`}
+                      filteredBookings.map((booking: any, index) => (
+                        <tr key={booking.id || booking.bookingId || index} className="hover:bg-gray-50 cursor-default">
+                          <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
+                            {booking.bookingNumber || booking.bookingId || `BOKID-${Math.floor(Math.random() * 9999)}`}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {booking.type || booking.customer?.name || 'N/A'}
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {booking.bookingType || booking.type || booking.title || 'N/A'}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {booking.location || 'N/A'}
+                          <td className="px-4 py-4 text-sm text-gray-900">
+                            <div className="max-w-[200px] truncate" title={booking.location?.address || booking.location || 'N/A'}>
+                              {booking.location?.address || booking.location || 'N/A'}
+                            </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {booking.date
-                              ? new Date(booking.date).toLocaleDateString()
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {booking.startDateTime || booking.eventDate || booking.date
+                              ? new Date(booking.startDateTime || booking.eventDate || booking.date).toLocaleDateString()
                               : 'N/A'}{' '}
                             {booking.startTime || ''}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {booking.specialRequests || 'N/A'}
+                          <td className="px-4 py-4 text-sm text-gray-900">
+                            <div className="max-w-[200px] truncate" title={booking.specialRequirement || booking.specialRequests || 'N/A'}>
+                              {booking.specialRequirement || booking.specialRequests || 'N/A'}
+                            </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-4 py-4 whitespace-nowrap">
                             <span
                               className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                                booking.status
+                                getBookingStatus(booking)
                               )}`}
                             >
-                              {booking.status || 'Pending'}
+                              {(() => {
+                                const status = booking.status || booking.bookingStatus || 'pending';
+                                return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+                              })()}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            <Button
-                              onClick={() => setShowQuotationModal(true)}
-                              className="px-4 py-2 bg-black text-white rounded-lg"
-                            >
-                              Create Event Quotation
-                            </Button>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {(getBookingStatus(booking) === 'pending') && (
+                                <>
+                                  <Button
+                                    onClick={() => handleAcceptBooking(booking)}
+                                    className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs whitespace-nowrap flex items-center gap-1"
+                                  >
+                                    <CheckCircle className="w-3 h-3" />
+                                    Accept
+                                  </Button>
+                                  <Button
+                                    onClick={() => handleRejectBooking(booking)}
+                                    className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs whitespace-nowrap flex items-center gap-1"
+                                  >
+                                    <XCircle className="w-3 h-3" />
+                                    Reject
+                                  </Button>
+                                </>
+                              )}
+                              <Button
+                                onClick={() => setShowQuotationModal(true)}
+                                className="px-3 py-1.5 bg-black hover:bg-gray-800 text-white rounded-lg text-xs whitespace-nowrap"
+                              >
+                                Create Event Quotation
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       ))
                     ) : (
                       // No bookings found message
                       <tr>
-                        <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                        <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
                           <div className="flex flex-col items-center justify-center space-y-2">
                             <div className="text-gray-400">
                               <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -505,6 +581,7 @@ export const BookingIndex: React.FC = () => {
                   </>
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
         </div>

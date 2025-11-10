@@ -63,15 +63,15 @@ export const BookingList: React.FC = () => {
   
   // Helper function to map BookingType to BookingRow
   const mapBookingToRow = (booking: any): BookingRow => ({
-    id: booking.bookingId || booking.id || '',
-    bookingNumber: booking.bookingNumber || '',
-    customerName: booking.customer?.name || '',
-    customerEmail: booking.customer?.email || '',
-    serviceName: booking.services?.[0]?.name || '',
-    startDateTime: booking.startTime || booking.date || '',
-    endDateTime: booking.endTime || '',
-    status: booking.status || '',
-    amount: booking.totalAmount || booking.amount || 0,
+    id: booking.id || booking.bookingId || '',
+    bookingNumber: booking.bookingNumber || booking.bookingId || '',
+    customerName: booking.customerName || booking.userName || booking.customer?.name || '',
+    customerEmail: booking.customerEmail || booking.userEmail || booking.customer?.email || '',
+    serviceName: booking.serviceName || booking.title || booking.services?.[0]?.name || '',
+    startDateTime: booking.eventDate || booking.startDateTime || booking.startTime || '',
+    endDateTime: booking.endDate || booking.endDateTime || booking.endTime || '',
+    status: booking.status || booking.bookingStatus || '',
+    amount: booking.amount || booking.price || 0,
     createdAt: booking.createdAt || '',
     assignedStaff: booking.assignedStaff || undefined,
   });
@@ -244,6 +244,53 @@ export const BookingList: React.FC = () => {
       label: 'Staff',
       render: (value: string | number | undefined, row: BookingRow, index: number) => value || '-',
     },
+    {
+      key: 'actions' as keyof BookingRow,
+      label: 'Actions',
+      render: (value: string | number | undefined, row: BookingRow, index: number) => {
+        const status = row.status?.toLowerCase() || '';
+        const isPending = status === 'pending';
+        
+        if (isPending) {
+          return (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => handleRowAction('accept', row)}
+                className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white"
+              >
+                <CheckCircle className="w-4 h-4" />
+                Accept
+              </Button>
+              <Button
+                variant="muted"
+                size="sm"
+                onClick={() => handleRowAction('decline', row)}
+                className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white"
+              >
+                <XCircle className="w-4 h-4" />
+                Decline
+              </Button>
+            </div>
+          );
+        }
+        
+        return (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="muted"
+              size="sm"
+              onClick={() => handleRowAction('view', row)}
+              className="flex items-center gap-1"
+            >
+              <Eye className="w-4 h-4" />
+              View
+            </Button>
+          </div>
+        );
+      },
+    },
   ];
 
   // Handle row actions
@@ -265,20 +312,42 @@ export const BookingList: React.FC = () => {
             toast.success('Booking deleted successfully!');
           }
           break;
+        case 'accept':
+          if (window.confirm('Are you sure you want to accept this booking request?')) {
+            await updateBookingStatus(row.id, 'confirmed', () => {
+              // Reload bookings from database after status update
+              loadBookings();
+            });
+          }
+          break;
+        case 'decline':
+          const reason = window.prompt('Please provide a reason for declining this booking:');
+          if (reason) {
+            await updateBookingStatus(row.id, 'rejected', () => {
+              // Reload bookings from database after status update
+              loadBookings();
+            });
+          }
+          break;
         case 'confirm':
-          await updateBookingStatus(row.id, 'confirmed');
-          toast.success('Booking confirmed successfully!');
+          await updateBookingStatus(row.id, 'confirmed', () => {
+            // Reload bookings from database after status update
+            loadBookings();
+          });
           break;
         case 'reject':
-          const reason = window.prompt('Please provide a reason for rejection:');
-          if (reason) {
-            await updateBookingStatus(row.id, 'rejected');
-            toast.success('Booking rejected successfully!');
+          const rejectReason = window.prompt('Please provide a reason for rejection:');
+          if (rejectReason) {
+            await updateBookingStatus(row.id, 'rejected', () => {
+              // Reload bookings from database after status update
+              loadBookings();
+            });
           }
           break;
       }
     } catch (error) {
       console.error('Action failed:', error);
+      toast.error('Failed to perform action. Please try again.');
     }
   };
 
@@ -500,6 +569,7 @@ export const BookingList: React.FC = () => {
           onPageChange={setCurrentPage}
           onRowsPerPageChange={setRowsPerPage}
           onRowAction={handleRowAction}
+          hideDeleteAction={true}
         />
       </div>
     </Layout>

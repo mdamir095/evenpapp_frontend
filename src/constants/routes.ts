@@ -81,4 +81,8 @@ export const ROUTING = {
     ADD_BOOKING: "booking-management/create",
     UPDATE_BOOKING: "booking-management/:id/edit",
     VIEW_BOOKING: "booking-management/:id",
+    QUOTATION_MANAGEMENT: "quotation-management",
+    ADD_QUOTATION: "quotation-management/create",
+    UPDATE_QUOTATION: "quotation-management/:id/edit",
+    VIEW_QUOTATION: "quotation-management/:id",
 }

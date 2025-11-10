@@ -13,6 +13,9 @@ const __dirname = dirname(__filename);
 const PORT = process.env.PORT || 5173;
 const distDir = join(__dirname, 'dist');
 
+// Backend API configuration - base URL without /api/v1 (we'll add it in the proxy)
+const API_BASE_URL = process.env.VITE_API_BASE_URL || 'https://evenpappbackend-production.up.railway.app';
+console.log(`Backend API Base URL: ${API_BASE_URL}`);
 
 // Check if dist directory exists
 if (!existsSync(distDir)) {
@@ -46,7 +49,9 @@ function getMimeType(filePath) {
 
 function proxyRequest(req, res, requestId) {
   try {
-    const backendUrl = new URL(API_BASE_URL);
+    // Ensure API_BASE_URL is defined
+    const backendApiUrl = API_BASE_URL || process.env.VITE_API_BASE_URL || 'https://evenpappbackend-production.up.railway.app';
+    const backendUrl = new URL(backendApiUrl);
     const isHttps = backendUrl.protocol === 'https:';
     const requestModule = isHttps ? httpsRequest : httpRequest;
     

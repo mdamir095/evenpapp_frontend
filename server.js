@@ -1,4 +1,7 @@
 import { createServer } from 'http';
+import { request as httpRequest } from 'http';
+import { request as httpsRequest } from 'https';
+import { URL } from 'url';
 import { readFileSync, existsSync, statSync } from 'fs';
 import { join, extname } from 'path';
 import { fileURLToPath } from 'url';
@@ -9,6 +12,10 @@ const __dirname = dirname(__filename);
 
 const PORT = process.env.PORT || 5173;
 const distDir = join(__dirname, 'dist');
+
+// Backend API configuration
+const API_BASE_URL = process.env.VITE_API_BASE_URL || 'https://evenpappbackend-production.up.railway.app';
+console.log(`Backend API URL: ${API_BASE_URL}`);
 
 // Check if dist directory exists
 if (!existsSync(distDir)) {
@@ -38,6 +45,74 @@ const MIME_TYPES = {
 function getMimeType(filePath) {
   const ext = extname(filePath).toLowerCase();
   return MIME_TYPES[ext] || 'application/octet-stream';
+}
+
+function proxyRequest(req, res, requestId) {
+  try {
+    const backendUrl = new URL(API_BASE_URL);
+    const isHttps = backendUrl.protocol === 'https:';
+    const requestModule = isHttps ? httpsRequest : httpRequest;
+    
+    // Construct the full backend URL with the API path
+    const targetPath = req.url; // This already includes /api/...
+    const targetUrl = `${API_BASE_URL}${targetPath}`;
+    
+    console.log(`[${requestId}] Proxying ${req.method} ${req.url} to: ${targetUrl}`);
+    
+    // Copy headers but update host
+    const headers = { ...req.headers };
+    headers.host = backendUrl.hostname;
+    // Remove connection header as it's connection-specific
+    delete headers.connection;
+    
+    const options = {
+      hostname: backendUrl.hostname,
+      port: backendUrl.port || (isHttps ? 443 : 80),
+      path: targetPath, // Use the request path directly (includes /api/...)
+      method: req.method,
+      headers: headers
+    };
+
+    const proxyReq = requestModule(options, (proxyRes) => {
+      console.log(`[${requestId}] Backend responded with status: ${proxyRes.statusCode}`);
+      
+      // Copy response headers
+      res.writeHead(proxyRes.statusCode, proxyRes.headers);
+      
+      // Pipe the response
+      proxyRes.pipe(res);
+      
+      proxyRes.on('end', () => {
+        console.log(`[${requestId}] ✓ API request completed`);
+      });
+    });
+
+    proxyReq.on('error', (error) => {
+      console.error(`[${requestId}] Proxy error:`, error.message);
+      if (!res.headersSent) {
+        res.writeHead(502, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ 
+          error: 'Bad Gateway', 
+          message: 'Failed to connect to backend server',
+          details: error.message
+        }));
+      }
+    });
+
+    // Pipe the request body
+    req.pipe(proxyReq);
+    
+  } catch (error) {
+    console.error(`[${requestId}] Proxy setup error:`, error);
+    if (!res.headersSent) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ 
+        error: 'Internal Server Error', 
+        message: 'Failed to setup proxy',
+        details: error.message
+      }));
+    }
+  }
 }
 
 function serveFile(filePath, res, requestId = '') {
@@ -116,6 +191,13 @@ const server = createServer((req, res) => {
       return;
     }
 
+    // Proxy API requests to backend (any path starting with /api)
+    if (req.url.startsWith('/api')) {
+      console.log(`[${requestId}] Proxying API request: ${req.url}`);
+      proxyRequest(req, res, requestId);
+      return;
+    }
+
     // Handle root path and all other requests
     let filePath = req.url === '/' ? '/index.html' : req.url;
     console.log(`[${requestId}] Resolved file path: ${filePath}`);
@@ -189,6 +271,8 @@ server.listen(PORT, '0.0.0.0', () => {
   // Log that server is ready to accept connections
   console.log('✓ Server is ready to accept connections');
   console.log('Waiting for incoming requests...');
+  console.log(`Health check available at: http://0.0.0.0:${PORT}/health`);
+  console.log(`Main site available at: http://0.0.0.0:${PORT}/`);
 });
 
 server.on('error', (error) => {

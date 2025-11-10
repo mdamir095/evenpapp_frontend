@@ -73,19 +73,43 @@ function serveFile(filePath, res) {
 }
 
 const server = createServer((req, res) => {
-  // Log incoming requests immediately
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - Headers:`, JSON.stringify(req.headers));
+  // Log incoming requests immediately - this should always fire if requests reach the server
+  const requestId = Date.now();
+  console.log(`[${requestId}] [${new Date().toISOString()}] ${req.method} ${req.url}`);
+  console.log(`[${requestId}] Remote address: ${req.socket.remoteAddress}:${req.socket.remotePort}`);
+  
+  // Set timeout to prevent hanging connections
+  req.setTimeout(30000, () => {
+    console.log(`[${requestId}] Request timeout`);
+    if (!res.headersSent) {
+      res.writeHead(408, { 'Content-Type': 'text/plain' });
+      res.end('Request timeout');
+    }
+  });
   
   try {
-    // Health check endpoint
-    if (req.url === '/health' || req.url === '/healthz') {
-      console.log('Health check requested');
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ status: 'ok', timestamp: new Date().toISOString() }));
-      return;
+    // Health check endpoint - Railway might be checking this
+    if (req.url === '/health' || req.url === '/healthz' || req.url === '/') {
+      console.log(`[${requestId}] Serving ${req.url === '/' ? 'root' : 'health check'}`);
+      
+      if (req.url === '/health' || req.url === '/healthz') {
+        res.writeHead(200, { 
+          'Content-Type': 'application/json',
+          'Connection': 'keep-alive'
+        });
+        res.end(JSON.stringify({ 
+          status: 'ok', 
+          timestamp: new Date().toISOString(),
+          port: PORT
+        }));
+        console.log(`[${requestId}] ✓ Health check responded`);
+        return;
+      }
     }
 
+    // Handle root path
     let filePath = req.url === '/' ? '/index.html' : req.url;
+    console.log(`[${requestId}] Resolved file path: ${filePath}`);
     
     // Remove query string
     filePath = filePath.split('?')[0];
@@ -123,6 +147,10 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`Serving files from: ${distDir}`);
   console.log(`PORT environment variable: ${process.env.PORT}`);
   
+  // Verify server is actually listening
+  const address = server.address();
+  console.log(`Server listening on:`, address);
+  
   // Verify index.html exists
   const indexPath = join(distDir, 'index.html');
   if (existsSync(indexPath)) {
@@ -140,11 +168,24 @@ server.listen(PORT, '0.0.0.0', () => {
   } catch (error) {
     console.error('✗ Error reading index.html:', error);
   }
+  
+  // Log that server is ready to accept connections
+  console.log('✓ Server is ready to accept connections');
+  console.log('Waiting for incoming requests...');
 });
 
 server.on('error', (error) => {
   console.error('Server error:', error);
+  console.error('Error details:', error.message, error.code);
   process.exit(1);
+});
+
+// Log when connections are established (even before requests)
+server.on('connection', (socket) => {
+  console.log(`[CONNECTION] New connection from ${socket.remoteAddress}:${socket.remotePort}`);
+  socket.on('close', () => {
+    console.log(`[CONNECTION] Connection closed from ${socket.remoteAddress}:${socket.remotePort}`);
+  });
 });
 
 // Handle uncaught exceptions

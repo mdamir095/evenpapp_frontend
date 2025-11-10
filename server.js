@@ -40,35 +40,47 @@ function getMimeType(filePath) {
   return MIME_TYPES[ext] || 'application/octet-stream';
 }
 
-function serveFile(filePath, res) {
+function serveFile(filePath, res, requestId = '') {
   try {
     if (!existsSync(filePath)) {
-      res.writeHead(404, { 'Content-Type': 'text/plain' });
-      res.end('File not found');
+      console.error(`[${requestId}] File not found: ${filePath}`);
+      if (!res.headersSent) {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end('File not found');
+      }
       return;
     }
 
     const stats = statSync(filePath);
     if (!stats.isFile()) {
-      res.writeHead(404, { 'Content-Type': 'text/plain' });
-      res.end('Not a file');
+      console.error(`[${requestId}] Path is not a file: ${filePath}`);
+      if (!res.headersSent) {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end('Not a file');
+      }
       return;
     }
 
     const content = readFileSync(filePath);
     const mimeType = getMimeType(filePath);
     
-    res.writeHead(200, { 
-      'Content-Type': mimeType,
-      'Content-Length': content.length,
-      'Connection': 'keep-alive'
-    });
-    res.end(content);
-    console.log(`✓ Served ${filePath} (${content.length} bytes)`);
+    if (!res.headersSent) {
+      res.writeHead(200, { 
+        'Content-Type': mimeType,
+        'Content-Length': content.length,
+        'Connection': 'keep-alive'
+      });
+      res.end(content);
+      console.log(`[${requestId}] ✓ Served ${filePath} (${content.length} bytes, ${mimeType})`);
+    } else {
+      console.error(`[${requestId}] Headers already sent, cannot serve file`);
+    }
   } catch (error) {
-    console.error('Error serving file:', error);
-    res.writeHead(500, { 'Content-Type': 'text/plain' });
-    res.end('Internal server error');
+    console.error(`[${requestId}] Error serving file:`, error);
+    if (!res.headersSent) {
+      res.writeHead(500, { 'Content-Type': 'text/plain' });
+      res.end('Internal server error');
+    }
   }
 }
 
@@ -89,25 +101,22 @@ const server = createServer((req, res) => {
   
   try {
     // Health check endpoint - Railway might be checking this
-    if (req.url === '/health' || req.url === '/healthz' || req.url === '/') {
-      console.log(`[${requestId}] Serving ${req.url === '/' ? 'root' : 'health check'}`);
-      
-      if (req.url === '/health' || req.url === '/healthz') {
-        res.writeHead(200, { 
-          'Content-Type': 'application/json',
-          'Connection': 'keep-alive'
-        });
-        res.end(JSON.stringify({ 
-          status: 'ok', 
-          timestamp: new Date().toISOString(),
-          port: PORT
-        }));
-        console.log(`[${requestId}] ✓ Health check responded`);
-        return;
-      }
+    if (req.url === '/health' || req.url === '/healthz') {
+      console.log(`[${requestId}] Serving health check`);
+      res.writeHead(200, { 
+        'Content-Type': 'application/json',
+        'Connection': 'keep-alive'
+      });
+      res.end(JSON.stringify({ 
+        status: 'ok', 
+        timestamp: new Date().toISOString(),
+        port: PORT
+      }));
+      console.log(`[${requestId}] ✓ Health check responded`);
+      return;
     }
 
-    // Handle root path
+    // Handle root path and all other requests
     let filePath = req.url === '/' ? '/index.html' : req.url;
     console.log(`[${requestId}] Resolved file path: ${filePath}`);
     
@@ -122,17 +131,25 @@ const server = createServer((req, res) => {
     }
 
     const fullPath = join(distDir, filePath);
+    console.log(`[${requestId}] Full path: ${fullPath}`);
+    console.log(`[${requestId}] File exists: ${existsSync(fullPath)}`);
 
     // If file doesn't exist and it's not an API route, serve index.html (for SPA routing)
     if (!existsSync(fullPath) && !filePath.startsWith('/api')) {
+      console.log(`[${requestId}] File not found, serving index.html for SPA routing`);
       const indexPath = join(distDir, 'index.html');
       if (existsSync(indexPath)) {
-        serveFile(indexPath, res);
+        serveFile(indexPath, res, requestId);
+        return;
+      } else {
+        console.error(`[${requestId}] index.html not found!`);
+        res.writeHead(500, { 'Content-Type': 'text/plain' });
+        res.end('index.html not found');
         return;
       }
     }
 
-    serveFile(fullPath, res);
+    serveFile(fullPath, res, requestId);
   } catch (error) {
     console.error('Unhandled error in request handler:', error);
     if (!res.headersSent) {

@@ -182,10 +182,24 @@ server.on('error', (error) => {
 
 // Log when connections are established (even before requests)
 server.on('connection', (socket) => {
-  console.log(`[CONNECTION] New connection from ${socket.remoteAddress}:${socket.remotePort}`);
-  socket.on('close', () => {
-    console.log(`[CONNECTION] Connection closed from ${socket.remoteAddress}:${socket.remotePort}`);
+  const connId = Date.now();
+  console.log(`[CONNECTION ${connId}] New connection from ${socket.remoteAddress}:${socket.remotePort}`);
+  
+  socket.on('error', (err) => {
+    console.error(`[CONNECTION ${connId}] Socket error:`, err.message);
   });
+  
+  socket.on('close', (hadError) => {
+    console.log(`[CONNECTION ${connId}] Connection closed (hadError: ${hadError}) from ${socket.remoteAddress}:${socket.remotePort}`);
+  });
+  
+  socket.on('timeout', () => {
+    console.log(`[CONNECTION ${connId}] Socket timeout`);
+    socket.destroy();
+  });
+  
+  // Set socket timeout
+  socket.setTimeout(60000);
 });
 
 // Handle uncaught exceptions

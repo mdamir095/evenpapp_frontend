@@ -68,30 +68,48 @@ function serveFile(filePath, res) {
 }
 
 const server = createServer((req, res) => {
-  let filePath = req.url === '/' ? '/index.html' : req.url;
-  
-  // Remove query string
-  filePath = filePath.split('?')[0];
-  
-  // Security: prevent directory traversal
-  if (filePath.includes('..')) {
-    res.writeHead(403, { 'Content-Type': 'text/plain' });
-    res.end('Forbidden');
-    return;
-  }
-
-  const fullPath = join(distDir, filePath);
-
-  // If file doesn't exist and it's not an API route, serve index.html (for SPA routing)
-  if (!existsSync(fullPath) && !filePath.startsWith('/api')) {
-    const indexPath = join(distDir, 'index.html');
-    if (existsSync(indexPath)) {
-      serveFile(indexPath, res);
+  try {
+    // Log incoming requests
+    console.log(`${req.method} ${req.url}`);
+    
+    // Health check endpoint
+    if (req.url === '/health' || req.url === '/healthz') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ status: 'ok', timestamp: new Date().toISOString() }));
       return;
     }
-  }
 
-  serveFile(fullPath, res);
+    let filePath = req.url === '/' ? '/index.html' : req.url;
+    
+    // Remove query string
+    filePath = filePath.split('?')[0];
+    
+    // Security: prevent directory traversal
+    if (filePath.includes('..')) {
+      res.writeHead(403, { 'Content-Type': 'text/plain' });
+      res.end('Forbidden');
+      return;
+    }
+
+    const fullPath = join(distDir, filePath);
+
+    // If file doesn't exist and it's not an API route, serve index.html (for SPA routing)
+    if (!existsSync(fullPath) && !filePath.startsWith('/api')) {
+      const indexPath = join(distDir, 'index.html');
+      if (existsSync(indexPath)) {
+        serveFile(indexPath, res);
+        return;
+      }
+    }
+
+    serveFile(fullPath, res);
+  } catch (error) {
+    console.error('Unhandled error in request handler:', error);
+    if (!res.headersSent) {
+      res.writeHead(500, { 'Content-Type': 'text/plain' });
+      res.end('Internal server error');
+    }
+  }
 });
 
 server.listen(PORT, '0.0.0.0', () => {
@@ -102,5 +120,17 @@ server.listen(PORT, '0.0.0.0', () => {
 server.on('error', (error) => {
   console.error('Server error:', error);
   process.exit(1);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  // Don't exit, let the server continue running
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  // Don't exit, let the server continue running
 });
 

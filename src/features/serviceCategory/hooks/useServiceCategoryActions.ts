@@ -19,7 +19,7 @@ import {
   fetchCategoryByIdFailure,
 } from '../slices/ServiceCategorySlice';
 import { API_ROUTES } from '../../../constants/routes';
-import { updateVendorCategoryStatusFailure, updateVendorCategoryStatusSuccess } from '../../vendorCategory/slices/VendorCategorySlice';
+import { updateServiceCategoryStatusFailure, updateServiceCategoryStatusSuccess } from '../slices/ServiceCategorySlice';
 
 export function useServiceCategoryActions() {
   const dispatch = useDispatch();
@@ -174,14 +174,14 @@ export function useServiceCategoryActions() {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
       });
-      dispatch(updateVendorCategoryStatusSuccess(response.data.data));
+      dispatch(updateServiceCategoryStatusSuccess(response.data.data));
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message || 
         err.response?.data?.error ||
         err.message || 
         'Failed to update vendor category status';
-      dispatch(updateVendorCategoryStatusFailure(errorMessage));
+      dispatch(updateServiceCategoryStatusFailure(errorMessage));
       throw err;
     }
   }, [dispatch]);

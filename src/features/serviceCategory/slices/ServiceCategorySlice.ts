@@ -109,7 +109,21 @@ export const serviceCategorySlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
+    updateServiceCategoryStatusStart(state) {
+      state.formLoading = true;
+      state.error = null;
+    },
+    updateServiceCategoryStatusSuccess(state, action: PayloadAction<ServiceCategory>) {
+      state.formLoading = false;
+      state.categories = state.categories.map((category: ServiceCategory) =>
+        category.id === action.payload.id ? action.payload : category
+      );
+    },
+    updateServiceCategoryStatusFailure(state, action: PayloadAction<string>) {
+      state.formLoading = false;
+      state.error = action.payload;
+    },
   },
 });
 
-export const {fetchCategoriesStart, fetchCategoriesSuccess, fetchCategoriesFailure, addCategoryStart, addCategorySuccess, addCategoryFailure, removeCategoryStart, removeCategorySuccess, removeCategoryFailure, updateCategoryStart, updateCategorySuccess, updateCategoryFailure,fetchCategoryByIdStart, fetchCategoryByIdSuccess, fetchCategoryByIdFailure } = serviceCategorySlice.actions;
+export const {fetchCategoriesStart, fetchCategoriesSuccess, fetchCategoriesFailure, addCategoryStart, addCategorySuccess, addCategoryFailure, removeCategoryStart, removeCategorySuccess, removeCategoryFailure, updateCategoryStart, updateCategorySuccess, updateCategoryFailure,fetchCategoryByIdStart, fetchCategoryByIdSuccess, fetchCategoryByIdFailure, updateServiceCategoryStatusStart, updateServiceCategoryStatusSuccess, updateServiceCategoryStatusFailure } = serviceCategorySlice.actions;

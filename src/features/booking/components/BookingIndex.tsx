@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Filter, X, CheckCircle, XCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Filter, X, Eye } from 'lucide-react';
 import Layout from '../../../layouts/Layout';
 import Breadcrumbs from '../../../components/common/BreadCrumb';
 import { useBooking } from '../hooks/useBooking';
@@ -64,9 +65,10 @@ interface Tab {
 }
 
 export const BookingIndex: React.FC = () => {
+  const navigate = useNavigate();
   const bookingState = useBooking();
   const { bookings = [] } = bookingState;
-  const { getBookingList, submitQuotation, acceptBooking, rejectBooking } = useBookingActions();
+  const { getBookingList, submitQuotation } = useBookingActions();
   
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [open, setOpen] = useState(false);
@@ -347,49 +349,6 @@ export const BookingIndex: React.FC = () => {
     }
   };
 
-  // Handle accept booking
-  const handleAcceptBooking = async (booking: any) => {
-    try {
-      const bookingId = booking.bookingNumber || booking.bookingId;
-      if (!bookingId) {
-        toast.error('Booking ID not found');
-        return;
-      }
-
-      if (window.confirm('Are you sure you want to accept this booking request?')) {
-        const notes = window.prompt('Add notes (optional):') || undefined;
-        await acceptBooking(bookingId, notes, () => {
-          // Reload bookings after status update
-          getBookingList(1, 100, '', {});
-        });
-      }
-    } catch (error) {
-      console.error('Error accepting booking:', error);
-      // Error handling is done in the acceptBooking function
-    }
-  };
-
-  // Handle reject booking
-  const handleRejectBooking = async (booking: any) => {
-    try {
-      const bookingId = booking.bookingNumber || booking.bookingId;
-      if (!bookingId) {
-        toast.error('Booking ID not found');
-        return;
-      }
-
-      const reason = window.prompt('Please provide a reason for rejecting this booking:');
-      if (reason) {
-        await rejectBooking(bookingId, reason, () => {
-          // Reload bookings after status update
-          getBookingList(1, 100, '', {});
-        });
-      }
-    } catch (error) {
-      console.error('Error rejecting booking:', error);
-      // Error handling is done in the rejectBooking function
-    }
-  };
 
 
   return (
@@ -534,29 +493,12 @@ export const BookingIndex: React.FC = () => {
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             <div className="flex items-center gap-2 flex-wrap">
-                              {(getBookingStatus(booking) === 'pending') && (
-                                <>
-                                  <Button
-                                    onClick={() => handleAcceptBooking(booking)}
-                                    className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs whitespace-nowrap flex items-center gap-1"
-                                  >
-                                    <CheckCircle className="w-3 h-3" />
-                                    Accept
-                                  </Button>
-                                  <Button
-                                    onClick={() => handleRejectBooking(booking)}
-                                    className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs whitespace-nowrap flex items-center gap-1"
-                                  >
-                                    <XCircle className="w-3 h-3" />
-                                    Reject
-                                  </Button>
-                                </>
-                              )}
                               <Button
-                                onClick={() => setShowQuotationModal(true)}
-                                className="px-3 py-1.5 bg-black hover:bg-gray-800 text-white rounded-lg text-xs whitespace-nowrap"
+                                onClick={() => navigate(`/booking-management/${booking.bookingId || booking.id || booking.bookingNumber}`)}
+                                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs whitespace-nowrap flex items-center gap-1"
                               >
-                                Create Event Quotation
+                                <Eye className="w-3 h-3" />
+                                View Details
                               </Button>
                             </div>
                           </td>

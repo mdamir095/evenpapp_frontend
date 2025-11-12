@@ -40,10 +40,11 @@ export function useAuthActions() {
 
       // Assume the API returns a token or user info in response.data
       const token = response.data.data.accessToken; // Adjust according to your API response
-      localStorage.setItem('token', response.data.data.accessToken);
-      localStorage.setItem('user', JSON.stringify(response.data.data));
-      // Dispatch success action with the token (or user info)
-      dispatch(loginSuccess(token));
+      const userData = response.data.data; // Full user data from login response
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      // Dispatch success action with both token and user data
+      dispatch(loginSuccess({ token, user: userData }));
     } catch (err: any) {
       // Handle errors (network issues, invalid credentials, etc.)
       // Axios error messages can be in err.response?.data?.message
@@ -71,7 +72,9 @@ export function useAuthActions() {
         }
       });
 
-      dispatch(loginSuccess(response.data.data.accessToken));
+      // Forgot password doesn't log the user in, just sends a reset link
+      // Reset loading state (using loginFailure with empty string to reset loading without showing error)
+      dispatch(loginFailure(''));
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message ||
@@ -93,7 +96,19 @@ export function useAuthActions() {
         }
       });
       
-      dispatch(loginSuccess(response.data.data.accessToken));
+      // If reset password returns user data, use it; otherwise get from localStorage
+      const userData = response.data.data?.user || JSON.parse(localStorage.getItem('user') || '{}');
+      const accessToken = response.data.data?.accessToken || response.data.data?.token || localStorage.getItem('token') || '';
+      
+      if (accessToken) {
+        localStorage.setItem('token', accessToken);
+        if (userData && Object.keys(userData).length > 0) {
+          localStorage.setItem('user', JSON.stringify(userData));
+        }
+        dispatch(loginSuccess({ token: accessToken, user: userData }));
+      } else {
+        dispatch(loginFailure('No token received'));
+      }
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message ||
@@ -130,7 +145,9 @@ export function useAuthActions() {
       // Trigger custom event to notify useUser hook
       window.dispatchEvent(new Event('userUpdated'));
       
-      dispatch(loginSuccess(response.data.data.accessToken));
+      // Dispatch success with updated user data
+      const token = localStorage.getItem('token') || '';
+      dispatch(loginSuccess({ token, user: updatedUser }));
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message ||

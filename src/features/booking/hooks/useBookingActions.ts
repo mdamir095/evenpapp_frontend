@@ -485,6 +485,66 @@ export function useBookingActions() {
     }
   }, []);
 
+  // Submit vendor offer for booking
+  const submitVendorOffer = useCallback(async (bookingId: string, offerData: any) => {
+    try {
+      const response = await api.post(`${API_ROUTES.BOOKINGS}/${bookingId}/offers`, offerData, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+
+      const offerResponse = response.data?.data || response.data;
+      toast.success('Offer submitted successfully!');
+      return offerResponse;
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || err.message || 'Failed to submit offer';
+      toast.error(errorMessage);
+      throw new Error(errorMessage);
+    }
+  }, [toast]);
+
+  // Get booking offers
+  const getBookingOffers = useCallback(async (bookingId: string) => {
+    try {
+      const response = await api.get(`${API_ROUTES.BOOKINGS}/${bookingId}/offers`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+
+      return response.data?.data || response.data;
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || err.message || 'Failed to fetch offers';
+      throw new Error(errorMessage);
+    }
+  }, []);
+
+  // Accept vendor offer
+  const acceptVendorOffer = useCallback(async (bookingId: string, offerId: string) => {
+    try {
+      const response = await api.post(`${API_ROUTES.BOOKINGS}/${bookingId}/offers/${offerId}/accept`, {}, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+
+      const responseData = response.data?.data || response.data;
+      toast.success('Offer accepted successfully!');
+      return responseData;
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || err.message || 'Failed to accept offer';
+      toast.error(errorMessage);
+      throw new Error(errorMessage);
+    }
+  }, [toast]);
+
   // Get vendor requirements
   const getVendorRequirements = useCallback(async (page = 1, limit = 10, filters = {}) => {
     try {
@@ -687,5 +747,8 @@ export function useBookingActions() {
     approveQuotation,
     rejectQuotation,
     updateQuotationStatus,
+    submitVendorOffer,
+    getBookingOffers,
+    acceptVendorOffer,
   };
 }

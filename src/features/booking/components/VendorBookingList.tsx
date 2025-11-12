@@ -23,6 +23,7 @@ import TableComponent from '../../../components/atoms/Table';
 import { useBookingActions } from '../hooks/useBookingActions';
 import { useBooking } from '../hooks/useBooking';
 import { useToast } from '../../../components/atoms/Toast';
+import { VendorOfferModal } from './VendorOfferModal';
 
 interface VendorBookingRow {
   id: string;
@@ -205,32 +206,55 @@ export const VendorBookingList: React.FC = () => {
         <span className="text-gray-400 text-sm">No rating</span>
       ),
     },
+    {
+      key: 'actions' as keyof VendorBookingRow,
+      label: 'Actions',
+      render: (value: string | number | undefined, row: VendorBookingRow, index: number) => {
+        const isPending = row.status?.toLowerCase() === 'pending';
+        return (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="muted"
+              size="sm"
+              onClick={() => handleRowAction('view', row)}
+              className="flex items-center gap-1"
+            >
+              <Eye className="w-4 h-4" />
+              View
+            </Button>
+            {isPending && (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => handleRowAction('submitOffer', row)}
+                className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <DollarSign className="w-4 h-4" />
+                Submit Offer
+              </Button>
+            )}
+          </div>
+        );
+      },
+    },
   ];
+
+  const [selectedBookingForOffer, setSelectedBookingForOffer] = useState<VendorBookingRow | null>(null);
+  const [showOfferModal, setShowOfferModal] = useState(false);
 
   // Handle row actions for vendor
   const handleRowAction = async (action: string, row: VendorBookingRow) => {
     try {
       switch (action) {
         case 'view':
-          navigate(`/vendor/bookings/${row.id}`);
+          navigate(`/booking-management/${row.id}`);
           break;
         case 'chat':
           navigate(`/vendor/chat/${row.id}`);
           break;
-        case 'confirm':
-          await updateBookingStatus(row.id, 'confirmed', () => {
-            // Reload bookings from database after status update
-            loadVendorBookings();
-          });
-          break;
-        case 'reject':
-          const reason = window.prompt('Please provide a reason for rejection:');
-          if (reason) {
-            await updateBookingStatus(row.id, 'rejected', () => {
-              // Reload bookings from database after status update
-              loadVendorBookings();
-            });
-          }
+        case 'submitOffer':
+          setSelectedBookingForOffer(row);
+          setShowOfferModal(true);
           break;
         case 'complete':
           await updateBookingStatus(row.id, 'completed', () => {
@@ -394,42 +418,6 @@ export const VendorBookingList: React.FC = () => {
           )}
         </div>
 
-        {/* Bulk Actions */}
-        {selectedBookings.length > 0 && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-blue-700">
-                {selectedBookings.length} booking(s) selected
-              </span>
-              
-              <div className="flex gap-2">
-                <Button
-                  variant="muted"
-                  size="sm"
-                  onClick={() => handleBulkAction('confirm')}
-                >
-                  Bulk Confirm
-                </Button>
-                
-                <Button
-                  variant="muted"
-                  size="sm"
-                  onClick={() => handleBulkAction('reject')}
-                >
-                  Bulk Reject
-                </Button>
-                
-                <Button
-                  variant="muted"
-                  size="sm"
-                  onClick={() => setSelectedBookings([])}
-                >
-                  Clear Selection
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Table */}
         <TableComponent
@@ -443,6 +431,22 @@ export const VendorBookingList: React.FC = () => {
           onRowsPerPageChange={setRowsPerPage}
           onRowAction={handleRowAction}
         />
+
+        {/* Vendor Offer Modal */}
+        {selectedBookingForOffer && (
+          <VendorOfferModal
+            isOpen={showOfferModal}
+            onClose={() => {
+              setShowOfferModal(false);
+              setSelectedBookingForOffer(null);
+            }}
+            bookingId={selectedBookingForOffer.id}
+            bookingNumber={selectedBookingForOffer.bookingNumber}
+            onSuccess={() => {
+              loadVendorBookings();
+            }}
+          />
+        )}
       </div>
     </Layout>
   );

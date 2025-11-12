@@ -52,10 +52,8 @@ import BookingIndex from '../features/booking/components/BookingIndex';
 import BookingList from '../features/booking/components/BookingList';
 import BookingForm from '../features/booking/components/BookingForm';
 import BookingDashboard from '../features/booking/components/BookingMangement';
+import BookingDetail from '../features/booking/components/BookingDetail';
 
-// Quotation Management
-import QuotationList from '../features/quotation/components/QuotationList';
-import QuotationForm from '../features/quotation/components/QuotationForm';
 
 import NotFoundPage from '../pages/NotFoundPage';
 import UnauthorizedPage from '../pages/UnauthorizedPage';
@@ -137,13 +135,13 @@ const AppRoutes = () => {
         <Route path={ROUTING.BOOKING_DASHBOARD} element={<ProtectedRoute requiredFeature="booking_management" requiredPermission="read"><BookingDashboard /></ProtectedRoute>} />
         <Route path={ROUTING.ADD_BOOKING} element={<ProtectedRoute requiredFeature="booking_management" requiredPermission="write"><BookingForm /></ProtectedRoute>} />
         <Route path={ROUTING.UPDATE_BOOKING} element={<ProtectedRoute requiredFeature="booking_management" requiredPermission="write"><BookingForm /></ProtectedRoute>} />
-        <Route path={ROUTING.VIEW_BOOKING} element={<ProtectedRoute requiredFeature="booking_management" requiredPermission="read"><BookingForm /></ProtectedRoute>} />
+        <Route path={ROUTING.VIEW_BOOKING} element={<ProtectedRoute requiredFeature="booking_management" requiredPermission="read"><BookingDetail /></ProtectedRoute>} />
 
         {/* Quotation Management - Protected by Quotation Management feature permission */}
-        <Route path={ROUTING.QUOTATION_MANAGEMENT} element={<ProtectedRoute requiredFeature="quotation_management" requiredPermission="read"><QuotationList /></ProtectedRoute>} />
+        {/* <Route path={ROUTING.QUOTATION_MANAGEMENT} element={<ProtectedRoute requiredFeature="quotation_management" requiredPermission="read"><QuotationList /></ProtectedRoute>} />
         <Route path={ROUTING.ADD_QUOTATION} element={<ProtectedRoute requiredFeature="quotation_management" requiredPermission="write"><QuotationForm /></ProtectedRoute>} />
         <Route path={ROUTING.UPDATE_QUOTATION} element={<ProtectedRoute requiredFeature="quotation_management" requiredPermission="write"><QuotationForm /></ProtectedRoute>} />
-        <Route path={ROUTING.VIEW_QUOTATION} element={<ProtectedRoute requiredFeature="quotation_management" requiredPermission="read"><QuotationForm /></ProtectedRoute>} />
+        <Route path={ROUTING.VIEW_QUOTATION} element={<ProtectedRoute requiredFeature="quotation_management" requiredPermission="read"><QuotationForm /></ProtectedRoute>} /> */}
 
         {/* -------------------- Error Pages -------------------- */}
         <Route path="/unauthorized" element={<UnauthorizedPage />} />

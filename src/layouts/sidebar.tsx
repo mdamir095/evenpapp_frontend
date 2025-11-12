@@ -6,8 +6,9 @@ import { useUser } from '../hooks/useUser';
 import { IMAGE_BASE_URL } from '../config/api';
 import Tooltip from '../components/atoms/ToolTip';
 import LogoutButton from '../features/auth/components/Auth/LogoutButton';
-import { getFeaturePermissions, getUserDataFromStorage, isSuperAdmin } from '../utils/permissions';
-import { generateMenuItemsFromFeatures, generateAllMenuItems, generateBasicMenuItems, type MenuItemFromFeature } from '../config/featureMapping';
+import { getUserDataFromStorage } from '../utils/permissions';
+import { getFeatureConfig, type MenuItemFromFeature } from '../config/featureMapping';
+import { Settings } from 'lucide-react';
 
 interface SidebarLinkProps {
   to: string;
@@ -142,35 +143,77 @@ const Sidebar: React.FC<SidebarProps> = ({ isExpanded, toggleSidebar }) => {
 
   const userData = getUserDataFromStorage();
 
-  // Generate dynamic menu items based on user permissions
+  // Generate dynamic menu items based on user permissions from login API response
   const menuItems: MenuItemFromFeature[] = useMemo(() => {
-    // Check if user is Super Admin
-    const isUserSuperAdmin = isSuperAdmin(userData);
+    // Always start with Dashboard and Profile Setting
+    const baseMenuItems: MenuItemFromFeature[] = [];
     
-    let baseMenuItems: MenuItemFromFeature[] = [];
+    // Always add Dashboard first
+    const dashboardConfig = getFeatureConfig('dashboard');
+    if (dashboardConfig) {
+      baseMenuItems.push({
+        to: dashboardConfig.route,
+        label: dashboardConfig.defaultLabel,
+        icon: dashboardConfig.icon,
+        badge: null,
+        feature: dashboardConfig.defaultLabel,
+        uniqueId: dashboardConfig.uniqueId,
+      });
+    }
     
-    if (isUserSuperAdmin) {
-      // Super Admin gets ALL features
-      baseMenuItems = generateAllMenuItems();
-    } else {
-      // Regular users get features based on their permissions
-      const userFeatures = userData?.roles?.flatMap(role => role.features || []) || [];
-      
-      // If user has features but no permission data, add default permissions
-      if (userFeatures.length > 0) {
-        const featuresWithPermissions = userFeatures.map(feature => ({
-          ...feature,
-          permission: feature.permission || {
-            read: true,
-            write: true,
-            admin: true
-          }
-        }));
-        baseMenuItems = generateMenuItemsFromFeatures(featuresWithPermissions as any);
-      } else {
-        // If no features, show only basic items
-        baseMenuItems = generateBasicMenuItems();
+    // Get features from login API response (from roles)
+    const userFeatures = userData?.roles?.flatMap(role => role.features || []) || [];
+    
+    // Filter out dashboard and profile_setting to avoid duplicates
+    // Also filter out features without uniqueId
+    const filteredFeatures = userFeatures.filter(
+      feature => feature && feature.uniqueId && 
+      feature.uniqueId !== 'dashboard' && 
+      feature.uniqueId !== 'profile_setting'
+    );
+    
+    // Add features from login response only
+    filteredFeatures.forEach(feature => {
+      // Double-check uniqueId exists before proceeding
+      if (!feature.uniqueId) {
+        return; // Skip features without uniqueId
       }
+      
+      const config = getFeatureConfig(feature.uniqueId);
+      if (config) {
+        baseMenuItems.push({
+          to: config.route,
+          label: feature.name || 'Unnamed Feature', // Use API name from login response
+          icon: config.icon,
+          badge: null,
+          feature: feature.name || 'Unnamed Feature',
+          uniqueId: feature.uniqueId,
+        });
+      } else {
+        // Fallback for unmapped features - ensure uniqueId exists before using replace
+        const route = feature.uniqueId ? `/${feature.uniqueId.replace(/_/g, '-')}` : '/unknown';
+        baseMenuItems.push({
+          to: route,
+          label: feature.name || 'Unnamed Feature',
+          icon: <Settings size={24} />,
+          badge: null,
+          feature: feature.name || 'Unnamed Feature',
+          uniqueId: feature.uniqueId || 'unknown',
+        });
+      }
+    });
+    
+    // Always add Profile Setting at the end
+    const profileConfig = getFeatureConfig('profile_setting');
+    if (profileConfig) {
+      baseMenuItems.push({
+        to: profileConfig.route,
+        label: profileConfig.defaultLabel,
+        icon: profileConfig.icon,
+        badge: null,
+        feature: profileConfig.defaultLabel,
+        uniqueId: profileConfig.uniqueId,
+      });
     }
 
     return baseMenuItems;
@@ -205,37 +248,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isExpanded, toggleSidebar }) => {
       <div className="flex-1 overflow-y-auto custom-scrollbar scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent overflow-x-hidden ">
         <nav className="mt-0 space-y-2">
           <div className={clsx({ 'p-4': isExpanded, 'p-2 py-4': !isExpanded })}>
-                         {menuItems
-               .filter((item) => {
-                 // Dashboard and Profile Setting are always accessible
-                 if (item.uniqueId === 'dashboard' || item.uniqueId === 'profile_setting') {
-                   return true;
-                 }
-                 
-                 // Super Admin has access to everything
-                 if (isSuperAdmin(userData)) {
-                   return true;
-                 }
-                 
-                 // For regular users, check permissions
-                 const permissions = getFeaturePermissions(userData, item.feature);
-                 const permissionsByUniqueId = getFeaturePermissions(userData, item.uniqueId);
-                 
-                 const hasAccess = permissions.hasAccess || permissionsByUniqueId.hasAccess;
-                 
-                 return hasAccess;
-               })
-               .map((item) => (
-                  <SidebarLink
-                    key={item.to}
-                    to={item.to}
-                    icon={item.icon}
-                    label={item.label}
-                    isExpanded={isExpanded}
-                    isActive={location.pathname.startsWith(item.to)}
-                    badge={item.badge}
-                  />
-                ))}
+            {/* Show only menu items from login API response (Dashboard, features from roles, and Profile) */}
+            {menuItems.map((item) => (
+              <SidebarLink
+                key={item.to}
+                to={item.to}
+                icon={item.icon}
+                label={item.label}
+                isExpanded={isExpanded}
+                isActive={location.pathname.startsWith(item.to)}
+                badge={item.badge}
+              />
+            ))}
           </div>
           
         </nav>

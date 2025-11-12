@@ -45,7 +45,7 @@ api.interceptors.response.use(
   (error) => {
     // Handle global errors, e.g., token expiration
     if (error.response && error.response.status === 401) {
-      console.error('401 Unauthorized - Token may be expired or invalid');
+     // console.error('401 Unauthorized - Token may be expired or invalid');
       // Clear invalid token
       localStorage.removeItem('token');
       localStorage.removeItem('user');

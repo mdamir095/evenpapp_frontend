@@ -510,6 +510,163 @@ export function useBookingActions() {
     }
   }, []);
 
+  // Submit quotation
+  const submitQuotation = useCallback(async (quotationData: any) => {
+    try {
+      const response = await api.post(`${API_ROUTES.QUOTATIONS}`, quotationData, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+
+      const quotationResponse = response.data?.data || response.data;
+      toast.success('Quotation submitted successfully!');
+      return quotationResponse;
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        'Failed to submit quotation';
+      toast.error(errorMessage);
+      throw err;
+    }
+  }, [toast]);
+
+  // Get quotations list
+  const getQuotationsList = useCallback(async (page = 1, limit = 100, searchQuery = '', filters = {}) => {
+    try {
+      const params: any = {
+        page,
+        limit,
+        search: searchQuery,
+        ...filters,
+      };
+      
+      const response = await api.get(`${API_ROUTES.QUOTATIONS}`, {
+        params,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+
+      return response.data?.data || response.data;
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || err.message || 'Failed to fetch quotations';
+      toast.error(errorMessage);
+      throw err;
+    }
+  }, [toast]);
+
+  // Approve quotation (similar to accept booking)
+  const approveQuotation = useCallback(async (
+    quotationId: string,
+    notes?: string,
+    reloadCallback?: () => void
+  ) => {
+    try {
+      const requestBody: any = { quotationId };
+      if (notes) requestBody.notes = notes;
+      
+      const response = await api.put(`${API_ROUTES.QUOTATIONS}/${quotationId}`, {
+        status: 'approved',
+        ...requestBody
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        }
+      });
+
+      const responseData = response.data?.data || response.data;
+      
+      if (reloadCallback) {
+        reloadCallback();
+      }
+      
+      toast.success('Quotation approved successfully!');
+      return responseData;
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || err.message || 'Failed to approve quotation';
+      toast.error(errorMessage);
+      throw err;
+    }
+  }, [toast]);
+
+  // Reject quotation (similar to reject booking)
+  const rejectQuotation = useCallback(async (
+    quotationId: string,
+    reason?: string,
+    reloadCallback?: () => void
+  ) => {
+    try {
+      const requestBody: any = { quotationId };
+      if (reason) requestBody.reason = reason;
+      
+      const response = await api.put(`${API_ROUTES.QUOTATIONS}/${quotationId}`, {
+        status: 'rejected',
+        ...requestBody
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        }
+      });
+
+      const responseData = response.data?.data || response.data;
+      
+      if (reloadCallback) {
+        reloadCallback();
+      }
+      
+      toast.success('Quotation rejected successfully!');
+      return responseData;
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || err.message || 'Failed to reject quotation';
+      toast.error(errorMessage);
+      throw err;
+    }
+  }, [toast]);
+
+  // Update quotation status
+  const updateQuotationStatus = useCallback(async (
+    quotationId: string,
+    status: string,
+    notes?: string,
+    reloadCallback?: () => void
+  ) => {
+    try {
+      const requestBody: any = { status };
+      if (notes) requestBody.notes = notes;
+      
+      const response = await api.put(`${API_ROUTES.QUOTATIONS}/${quotationId}`, requestBody, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        }
+      });
+
+      const responseData = response.data?.data || response.data;
+      
+      if (reloadCallback) {
+        reloadCallback();
+      }
+      
+      toast.success(`Quotation ${status} successfully!`);
+      return responseData;
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || err.message || `Failed to ${status} quotation`;
+      toast.error(errorMessage);
+      throw err;
+    }
+  }, [toast]);
+
   return {
     getBookingList,
     fetchBookingById,
@@ -525,5 +682,10 @@ export function useBookingActions() {
     processPayment,
     submitVendorQuote,
     getVendorRequirements,
+    submitQuotation,
+    getQuotationsList,
+    approveQuotation,
+    rejectQuotation,
+    updateQuotationStatus,
   };
 }

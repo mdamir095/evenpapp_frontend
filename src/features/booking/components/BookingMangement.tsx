@@ -47,6 +47,15 @@ interface RecentBooking {
   amount: number;
 }
 
+interface QuotationData {
+  venue: number;
+  catering: number;
+  decorations: number;
+  services: number;
+  discount: number;
+  tax: number;
+  additionalNotes: string;
+}
 
 type TabType = 'all' | 'cancelled' | 'pending' | 'rejected';
 
@@ -55,6 +64,16 @@ export const BookingManagement: React.FC = () => {
   const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>('all');
+  const [showQuotationModal, setShowQuotationModal] = useState(false);
+  const [quotationData, setQuotationData] = useState<QuotationData>({
+    venue: 0,
+    catering: 0,
+    decorations: 0,
+    services: 0,
+    discount: 0,
+    tax: 0,
+    additionalNotes: ''
+  });
   const [stats, setStats] = useState<DashboardStats>({
     totalBookings: 0,
     pendingBookings: 0,
@@ -128,6 +147,57 @@ export const BookingManagement: React.FC = () => {
     }
   };
 
+  // Calculate total quotation amount
+  const calculateTotal = () => {
+    const subtotal = quotationData.venue + quotationData.catering + quotationData.decorations + quotationData.services;
+    const discountAmount = (subtotal * quotationData.discount) / 100;
+    const taxAmount = ((subtotal - discountAmount) * quotationData.tax) / 100;
+    return subtotal - discountAmount + taxAmount;
+  };
+
+  // Handle quotation input changes
+  const handleQuotationChange = (field: keyof QuotationData, value: string | number) => {
+    setQuotationData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // Handle save quotation
+  const handleSaveQuotation = () => {
+    try {
+      // Here you would typically save the quotation to the backend
+      console.log('Saving quotation:', quotationData);
+      toast.success('Quotation saved successfully');
+      setShowQuotationModal(false);
+      // Reset form
+      setQuotationData({
+        venue: 0,
+        catering: 0,
+        decorations: 0,
+        services: 0,
+        discount: 0,
+        tax: 0,
+        additionalNotes: ''
+      });
+    } catch (error) {
+      toast.error('Failed to save quotation');
+    }
+  };
+
+  // Handle cancel quotation
+  const handleCancelQuotation = () => {
+    setShowQuotationModal(false);
+    setQuotationData({
+      venue: 0,
+      catering: 0,
+      decorations: 0,
+      services: 0,
+      discount: 0,
+      tax: 0,
+      additionalNotes: ''
+    });
+  };
 
   const refreshData = () => {
     window.location.reload();
@@ -275,6 +345,14 @@ export const BookingManagement: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <Button
+                        variant="muted"
+                        size="sm"
+                        onClick={() => setShowQuotationModal(true)}
+                        className="text-xs px-3 py-2 whitespace-nowrap"
+                      >
+                        Create Event Quotation
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -304,7 +382,17 @@ export const BookingManagement: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      <RowActionMenu />
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="muted"
+                          size="sm"
+                          onClick={() => setShowQuotationModal(true)}
+                          className="text-xs px-3 py-2 whitespace-nowrap"
+                        >
+                          Create Event Quotation
+                        </Button>
+                        <RowActionMenu />
+                      </div>
                     </td>
                   </tr>
               </tbody>
@@ -315,6 +403,133 @@ export const BookingManagement: React.FC = () => {
           
         </div>
 
+        {/* Event Quotation Modal */}
+        {showQuotationModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900">Event Quotation</h3>
+                <button
+                  onClick={handleCancelQuotation}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6 space-y-4">
+                {/* Quotation Fields */}
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Venue</label>
+                    <input
+                      type="number"
+                      value={quotationData.venue}
+                      onChange={(e) => handleQuotationChange('venue', Number(e.target.value))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="0"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Catering</label>
+                    <input
+                      type="number"
+                      value={quotationData.catering}
+                      onChange={(e) => handleQuotationChange('catering', Number(e.target.value))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="0"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Decorations</label>
+                    <input
+                      type="number"
+                      value={quotationData.decorations}
+                      onChange={(e) => handleQuotationChange('decorations', Number(e.target.value))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="0"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Services</label>
+                    <input
+                      type="number"
+                      value={quotationData.services}
+                      onChange={(e) => handleQuotationChange('services', Number(e.target.value))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="0"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Discount (%)</label>
+                    <input
+                      type="number"
+                      value={quotationData.discount}
+                      onChange={(e) => handleQuotationChange('discount', Number(e.target.value))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="0"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Tax (%)</label>
+                    <input
+                      type="number"
+                      value={quotationData.tax}
+                      onChange={(e) => handleQuotationChange('tax', Number(e.target.value))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="0"
+                    />
+                  </div>
+
+                  {/* Total */}
+                  <div className="pt-2 border-t border-gray-200">
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg font-semibold text-gray-900">Total</span>
+                      <span className="text-lg font-bold text-blue-600">₹{calculateTotal().toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional Notes */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Additional Notes</label>
+                  <Textarea
+                    value={quotationData.additionalNotes}
+                    onChange={(e) => handleQuotationChange('additionalNotes', e.target.value)}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Special requirements, terms, conditions..."
+                  />
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
+                <Button
+                  variant="muted"
+                  onClick={handleCancelQuotation}
+                  className="px-4 py-2"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={handleSaveQuotation}
+                  className="px-4 py-2"
+                >
+                  Save Quotation
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
        
       </div>

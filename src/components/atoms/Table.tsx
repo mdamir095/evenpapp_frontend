@@ -43,6 +43,7 @@ function TableComponent<T extends TableRow>(props: TableComponentProps<T>) {
     enterprisesDropdown,
     hideDeleteAction = false,
     showLocationOption = false,
+    showQuotationOption = false,
   } = props;
 
   const [sortKey, setSortKey] = useState<string | null>(null);
@@ -303,10 +304,12 @@ function TableComponent<T extends TableRow>(props: TableComponentProps<T>) {
                             onBlock={() => onRowAction?.("block", row)}
                             onUnblock={() => onRowAction?.("unblock", row)}
                             onLocation={() => onRowAction?.("add location", row)}
+                            onQuotation={() => onRowAction?.("quotation", row)}
                             canBlock={canEdit}
                             canUnblock={canEdit}
                             isBlocked={Boolean((row as any)?.isBlocked)}
                             showLocationOption={showLocationOption}
+                            showQuotationOption={showQuotationOption}
                           />
                         </td>
                       )}

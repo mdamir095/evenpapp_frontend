@@ -303,6 +303,9 @@ export const BookingList: React.FC = () => {
         case 'edit':
           navigate(`/booking-management/${row.id}/edit`);
           break;
+        case 'quotation':
+          navigate(`/booking-management/${row.id}/quotation`);
+          break;
         case 'delete':
           if (window.confirm('Are you sure you want to delete this booking?')) {
             await removeBooking(row.id);

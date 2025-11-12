@@ -74,23 +74,11 @@ export const FEATURE_MAPPING: Record<string, FeatureConfig> = {
     icon: <FolderPen size={24} />,
     defaultLabel: 'Form Builder',
   },
-  venue_management: {
-    uniqueId: 'venue_management',
-    route: '/venue-management',
-    icon: <LayoutGrid size={24} />,
-    defaultLabel: 'Venue Service',
-  },
   service_category: {
     uniqueId: 'service_category',
     route: '/service-category',
     icon: <Package size={24} />,
     defaultLabel: 'Service Category',
-  },
-  vendor_management: {
-    uniqueId: 'vendor_management',
-    route: '/vendor-management',
-    icon: <UserLockIcon size={24} />,
-    defaultLabel: 'Vendor Service',
   },
   vendor_category: {
     uniqueId: 'vendor_category',
@@ -115,18 +103,6 @@ export const FEATURE_MAPPING: Record<string, FeatureConfig> = {
     route: '/booking-management',
     icon: <Calendar size={24} />,
     defaultLabel: 'Booking Management',
-  },
-  quotation_management: {
-    uniqueId: 'quotation_management',
-    route: '/quotation-management',
-    icon: <FileText size={24} />,
-    defaultLabel: 'Quotation Management',
-  },
-  quatation_management: {
-    uniqueId: 'quatation_management',
-    route: '/quotation-management',
-    icon: <FileText size={24} />,
-    defaultLabel: 'Quotation Management',
   },
 };
 
@@ -170,12 +146,9 @@ export const generateAllMenuItems = (): MenuItemFromFeature[] => {
     'feature_management',
     'enterprise_management',
     'form_builder',
-    'venue_management',
     'service_category',
     'vendor_category',
-    'vendor_management',
     'booking_management',
-    'quotation_management',
     'content_policy',
   ];
 

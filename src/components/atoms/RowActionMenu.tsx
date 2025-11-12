@@ -14,7 +14,6 @@ type RowActionMenuProps = {
   onBlock?: () => void;
   onUnblock?: () => void;
   onLocation?: () => void;
-  onQuotation?: () => void;
   canActivate?: boolean;
   canDeactivate?: boolean;
   canBlock?: boolean;
@@ -22,7 +21,6 @@ type RowActionMenuProps = {
   isActive?: boolean;
   isBlocked?: boolean;
   showLocationOption?: boolean;
-  showQuotationOption?: boolean;
 };
 
 export const RowActionMenu = ({
@@ -44,7 +42,6 @@ export const RowActionMenu = ({
   isActive = true,
   isBlocked = false,
   showLocationOption = true,
-  showQuotationOption = false,
 }: RowActionMenuProps) => {
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState<'top' | 'bottom'>('bottom');
@@ -231,20 +228,6 @@ export const RowActionMenu = ({
               >
                 <MapPinned  className="size-4" /> Add Location
               </li>
-            )}
-            {showQuotationOption && (
-              <li
-                // onClick={() => {
-                //   setOpen(false);
-                //   onQuotation?.();
-                // }}
-                onClick={() => setOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-gray-700 cursor-pointer"
-                role="menuitem"
-              >
-                <FileText className="size-4" /> Create Quotation
-              </li>
-              
             )}
           </ul>
         </div>,

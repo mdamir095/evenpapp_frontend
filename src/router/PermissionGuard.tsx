@@ -32,10 +32,8 @@ const ROUTE_FEATURE_MAPPING: Record<string, string> = {
   '/enterprise-management': 'enterprise_management',
   '/form-list': 'form_builder',
   '/form-builder': 'form_builder',
-  '/venue-management': 'venue_management',
   '/category-management': 'service_category',
   '/service-category': 'service_category',
-  '/vendor-management': 'vendor_management',
   '/content-policy': 'content_policy',
   '/booking-management': 'booking_management',
 };

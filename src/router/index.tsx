@@ -36,14 +36,10 @@ import EnterpriseList from '../features/enterprise/components/EnterpriseList';
 import EnterpriseForm from '../features/enterprise/components/EnterpriseForm';
 import EnterpriseEmailVerify from '../features/enterprise/components/ResetPassword';
 
-import AddVenueForm from '../features/venue/components/AddVenueForm';
 import { ROUTING } from '../constants/routes';
 import DynamicFormList from '../features/forms/components/FormList';
 import ServiceCategoryList from '../features/serviceCategory/components/ServiceCategoryList';
 import ServiceCategoryForm from '../features/serviceCategory/components/ServiceCategoryForm';
-import VenueList from '../features/venue/components/VenueList';
-import VendorList from '../features/vendorManagement/components/VendorList';
-import VendorForm from '../features/vendorManagement/components/VendorForm';
 import ContentPolicyList from '../features/content-policy/components/ContentPolicyList';
 import ContentPolicyForm from '../features/content-policy/components/ContentPolicyForm';
 
@@ -53,9 +49,6 @@ import BookingList from '../features/booking/components/BookingList';
 import BookingForm from '../features/booking/components/BookingForm';
 import BookingDashboard from '../features/booking/components/BookingMangement';
 
-// Quotation Management
-import QuotationList from '../features/quotation/components/QuotationList';
-import QuotationForm from '../features/quotation/components/QuotationForm';
 
 import NotFoundPage from '../pages/NotFoundPage';
 import UnauthorizedPage from '../pages/UnauthorizedPage';
@@ -106,10 +99,6 @@ const AppRoutes = () => {
         <Route path={ROUTING.ADD_CATEGORY} element={<ProtectedRoute requiredFeature="service_category" requiredPermission="write"><ServiceCategoryForm /></ProtectedRoute>} />
         <Route path={ROUTING.UPDATE_CATEGORY} element={<ProtectedRoute requiredFeature="service_category" requiredPermission="write"><ServiceCategoryForm /></ProtectedRoute>} />
 
-        {/* Vendor Management - Protected by Vendor Management feature permission */}
-        <Route path={ROUTING.VENDOR_MANAGEMENT} element={<ProtectedRoute requiredFeature="vendor_management" requiredPermission="read"><VendorList /></ProtectedRoute>} />
-        <Route path={ROUTING.ADD_VENDORS} element={<ProtectedRoute requiredFeature="vendor_management" requiredPermission="write"><VendorForm /></ProtectedRoute>} />
-        <Route path={ROUTING.UPDATE_VENDORS} element={<ProtectedRoute requiredFeature="vendor_management" requiredPermission="write"><VendorForm /></ProtectedRoute>} />
          
         {/* Form Builder - Protected by Form Builder feature permission */}
         <Route path={ROUTING.FORM_LIST} element={<ProtectedRoute requiredFeature="form_builder" requiredPermission="read"><DynamicFormList /></ProtectedRoute>} />
@@ -118,12 +107,6 @@ const AppRoutes = () => {
         {/* Profile / Account */}
         <Route path={ROUTING.PROFILE_SETTING} element={<RequireAuth><ProfileSetting /></RequireAuth>} />
         <Route path={ROUTING.LOGOUT} element={<RequireAuth><LogoutButton /></RequireAuth>} />
-
-        {/* -------------------- Venue Management - Protected by Venue Management feature permission -------------------- */}  
-        <Route path={ROUTING.VENUE_MANAGEMENT} element={<ProtectedRoute requiredFeature="venue_management" requiredPermission="read"><VenueList /></ProtectedRoute>} />
-        <Route path={ROUTING.ADD_VENUE} element={<ProtectedRoute requiredFeature="venue_management" requiredPermission="write"><AddVenueForm /></ProtectedRoute>} />
-        <Route path={ROUTING.UPDATE_VENUE} element={<ProtectedRoute requiredFeature="venue_management" requiredPermission="write"><AddVenueForm /></ProtectedRoute>} />
-
 
 
         {/* Content Policy Management - Protected by Content Policy Management feature permission */}
@@ -139,11 +122,6 @@ const AppRoutes = () => {
         <Route path={ROUTING.UPDATE_BOOKING} element={<ProtectedRoute requiredFeature="booking_management" requiredPermission="write"><BookingForm /></ProtectedRoute>} />
         <Route path={ROUTING.VIEW_BOOKING} element={<ProtectedRoute requiredFeature="booking_management" requiredPermission="read"><BookingForm /></ProtectedRoute>} />
 
-        {/* Quotation Management - Protected by Quotation Management feature permission */}
-        <Route path={ROUTING.QUOTATION_MANAGEMENT} element={<ProtectedRoute requiredFeature="quotation_management" requiredPermission="read"><QuotationList /></ProtectedRoute>} />
-        <Route path={ROUTING.ADD_QUOTATION} element={<ProtectedRoute requiredFeature="quotation_management" requiredPermission="write"><QuotationForm /></ProtectedRoute>} />
-        <Route path={ROUTING.UPDATE_QUOTATION} element={<ProtectedRoute requiredFeature="quotation_management" requiredPermission="write"><QuotationForm /></ProtectedRoute>} />
-        <Route path={ROUTING.VIEW_QUOTATION} element={<ProtectedRoute requiredFeature="quotation_management" requiredPermission="read"><QuotationForm /></ProtectedRoute>} />
 
         {/* -------------------- Error Pages -------------------- */}
         <Route path="/unauthorized" element={<UnauthorizedPage />} />

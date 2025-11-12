@@ -45,15 +45,6 @@ interface BookingItem {
   };
 }
 
-interface QuotationData {
-  quotationTitle: string;
-  description: string;
-  price: number;
-  breakdownOfCharges: string;
-  discounts: number;
-  taxes: number;
-  totalAmount: number;
-}
 
 type TabType = 'all' | 'cancelled' | 'pending' | 'rejected';
 
@@ -66,21 +57,11 @@ interface Tab {
 export const BookingIndex: React.FC = () => {
   const bookingState = useBooking();
   const { bookings = [] } = bookingState;
-  const { getBookingList, submitQuotation, acceptBooking, rejectBooking } = useBookingActions();
+  const { getBookingList, acceptBooking, rejectBooking } = useBookingActions();
   
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [open, setOpen] = useState(false);
   const [selectedServiceType, setSelectedServiceType] = useState<string>('all');
-  const [showQuotationModal, setShowQuotationModal] = useState(false);
-  const [quotationData, setQuotationData] = useState<QuotationData>({
-    quotationTitle: '',
-    description: '',
-    price: 0,
-    breakdownOfCharges: '',
-    discounts: 0,
-    taxes: 0,
-    totalAmount: 0
-  });
   const [filteredBookings, setFilteredBookings] = useState<BookingItem[]>([]);
   const toast = useToast();
   
@@ -224,113 +205,6 @@ export const BookingIndex: React.FC = () => {
     }
   };
 
-  // Calculate total quotation amount
-  const calculateTotal = () => {
-    const subtotal = quotationData.price;
-    const discountAmount = quotationData.discounts;
-    const taxAmount = quotationData.taxes;
-    const total = subtotal - discountAmount + taxAmount;
-    
-    // Update the total amount in state
-    setQuotationData(prev => ({ ...prev, totalAmount: total }));
-    
-    return total;
-  };
-
-  // Handle quotation input changes
-  const handleQuotationChange = (field: keyof QuotationData, value: string | number) => {
-    setQuotationData(prev => {
-      const updated = { ...prev, [field]: value };
-      
-      // Recalculate total when price, discounts, or taxes change
-      if (field === 'price' || field === 'discounts' || field === 'taxes') {
-        const subtotal = field === 'price' ? Number(value) : prev.price;
-        const discountAmount = field === 'discounts' ? Number(value) : prev.discounts;
-        const taxAmount = field === 'taxes' ? Number(value) : prev.taxes;
-        updated.totalAmount = subtotal - discountAmount + taxAmount;
-      }
-      
-      return updated;
-    });
-  };
-
-  // Handle save quotation
-  const handleSaveQuotation = async () => {
-    try {
-      // Validate required fields
-      if (!quotationData.quotationTitle.trim()) {
-        toast.error('Quotation title is required');
-        return;
-      }
-      if (!quotationData.description.trim()) {
-        toast.error('Description is required');
-        return;
-      }
-      if (quotationData.price <= 0) {
-        toast.error('Price must be greater than 0');
-        return;
-      }
-
-      // Get user data from storage
-      const userData = getUserDataFromStorage();
-      if (!userData) {
-        toast.error('User data not found. Please login again.');
-        return;
-      }
-
-      // Prepare quotation data for API
-      const quotationPayload = {
-        quotationTitle: quotationData.quotationTitle,
-        description: quotationData.description,
-        price: quotationData.price,
-        breakdownOfCharges: quotationData.breakdownOfCharges,
-        discounts: quotationData.discounts,
-        taxes: quotationData.taxes,
-        totalAmount: quotationData.totalAmount,
-        serviceId: 'service-id-placeholder', // You may need to get this from the selected booking or service
-        userId: (userData as any).id || (userData as any)._id, // Assuming user data has an id field
-        enterpriseId: userData.enterpriseId,
-        enterpriseName: userData.organizationName,
-        status: 'pending', // Initial status
-        createdAt: new Date().toISOString(),
-      };
-
-      // Call API to submit quotation
-      await submitQuotation(quotationPayload);
-      
-      setShowQuotationModal(false);
-      // Reset form
-      setQuotationData({
-        quotationTitle: '',
-        description: '',
-        price: 0,
-        breakdownOfCharges: '',
-        discounts: 0,
-        taxes: 0,
-        totalAmount: 0
-      });
-      
-      // Reload bookings list using booking/all API
-      await getBookingList(1, 100, '', {});
-    } catch (error) {
-      console.error('Error saving quotation:', error);
-      // Error handling is done in the submitQuotation function
-    }
-  };
-
-  // Handle cancel quotation
-  const handleCancelQuotation = () => {
-    setShowQuotationModal(false);
-    setQuotationData({
-      quotationTitle: '',
-      description: '',
-      price: 0,
-      breakdownOfCharges: '',
-      discounts: 0,
-      taxes: 0,
-      totalAmount: 0
-    });
-  };
 
   const getStatusColor = (status: string) => {
     const statusLower = status?.toLowerCase() || '';
@@ -552,12 +426,6 @@ export const BookingIndex: React.FC = () => {
                                   </Button>
                                 </>
                               )}
-                              <Button
-                                onClick={() => setShowQuotationModal(true)}
-                                className="px-3 py-1.5 bg-black hover:bg-gray-800 text-white rounded-lg text-xs whitespace-nowrap"
-                              >
-                                Create Event Quotation
-                              </Button>
                             </div>
                           </td>
                         </tr>
@@ -586,133 +454,6 @@ export const BookingIndex: React.FC = () => {
           </div>
         </div>
 
-        {/* Event Quotation Modal - Right Side Slide */}
-        {showQuotationModal && (
-          <div className="fixed inset-0 z-50">
-            <div 
-              className="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-xl transform transition-transform duration-300 ease-in-out flex flex-col"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Modal Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
-                <h3 className="text-lg font-semibold text-gray-900">Event Quotation</h3>
-                <button
-                  onClick={handleCancelQuotation}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Modal Body */}
-              <div className="p-6 space-y-4 overflow-y-auto flex-1">
-                {/* Quotation Fields */}
-                <div className="space-y-4">
-                  {/* Quotation Title */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Quotation Title *</label>
-                    <input
-                      type="text"
-                      value={quotationData.quotationTitle}
-                      onChange={(e) => handleQuotationChange('quotationTitle', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="e.g., Wedding Photography Premium Package"
-                    />
-                  </div>
-
-                  {/* Description / Proposal */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Description / Proposal *</label>
-                    <Textarea
-                      value={quotationData.description}
-                      onChange={(e) => handleQuotationChange('description', e.target.value)}
-                      rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Explain your offer and services in detail..."
-                    />
-                  </div>
-
-                  {/* Price / Estimated Cost */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Price / Estimated Cost *</label>
-                    <input
-                      type="number"
-                      value={quotationData.price}
-                      onChange={(e) => handleQuotationChange('price', Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="0"
-                      min="0"
-                    />
-                  </div>
-
-                  {/* Breakdown of Charges */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Breakdown of Charges (Optional)</label>
-                    <Textarea
-                      value={quotationData.breakdownOfCharges}
-                      onChange={(e) => handleQuotationChange('breakdownOfCharges', e.target.value)}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Item 1: ₹1000&#10;Item 2: ₹2000&#10;Item 3: ₹1500"
-                    />
-                  </div>
-
-                  {/* Discounts / Offers */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Discounts / Offers (Optional)</label>
-                    <input
-                      type="number"
-                      value={quotationData.discounts}
-                      onChange={(e) => handleQuotationChange('discounts', Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="0"
-                      min="0"
-                    />
-                  </div>
-
-                  {/* Taxes & Fees */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Taxes & Fees (Optional)</label>
-                    <input
-                      type="number"
-                      value={quotationData.taxes}
-                      onChange={(e) => handleQuotationChange('taxes', Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="0"
-                      min="0"
-                    />
-                  </div>
-
-                  {/* Total Amount */}
-                  <div className="pt-3 border-t border-gray-200">
-                    <div className="flex justify-between items-center">
-                      <span className="text-lg font-semibold text-gray-900">Total Amount</span>
-                      <span className="text-lg font-bold text-blue-600">₹{quotationData.totalAmount.toLocaleString()}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Modal Footer */}
-              <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 flex-shrink-0">
-                <Button
-                  variant="muted"
-                  onClick={handleCancelQuotation}
-                  className="px-4 py-2"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="primary"
-                  onClick={handleSaveQuotation}
-                  className="px-4 py-2"
-                >
-                  Save Quotation
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </Layout>
   );

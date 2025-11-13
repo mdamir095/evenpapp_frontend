@@ -488,7 +488,8 @@ export function useBookingActions() {
   // Submit vendor offer for booking
   const submitVendorOffer = useCallback(async (bookingId: string, offerData: any) => {
     try {
-      const response = await api.post(`${API_ROUTES.BOOKINGS}/${bookingId}/offers`, offerData, {
+      // Use the correct endpoint: /booking/{bookingId}/vendor-offer
+      const response = await api.post(`${API_ROUTES.BOOKINGS}/${bookingId}/vendor-offer`, offerData, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -506,7 +507,7 @@ export function useBookingActions() {
     }
   }, [toast]);
 
-  // Get booking offers
+  // Get booking offers - accessible to all users
   const getBookingOffers = useCallback(async (bookingId: string) => {
     try {
       const response = await api.get(`${API_ROUTES.BOOKINGS}/${bookingId}/offers`, {
@@ -516,11 +517,21 @@ export function useBookingActions() {
         },
       });
 
-      return response.data?.data || response.data;
+      // Handle both single offer and array of offers
+      const data = response.data?.data || response.data;
+      if (Array.isArray(data)) {
+        return data;
+      } else if (data && typeof data === 'object') {
+        // If single offer, return as array
+        return [data];
+      }
+      return [];
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message || err.message || 'Failed to fetch offers';
-      throw new Error(errorMessage);
+      console.error('Error fetching offers:', errorMessage);
+      // Return empty array on error (endpoint should be accessible to all users)
+      return [];
     }
   }, []);
 
@@ -540,6 +551,40 @@ export function useBookingActions() {
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message || err.message || 'Failed to accept offer';
+      toast.error(errorMessage);
+      throw new Error(errorMessage);
+    }
+  }, [toast]);
+
+  // Update vendor offer
+  const updateVendorOffer = useCallback(async (bookingId: string, offerId: string, offerData: any) => {
+    try {
+      // Try vendor-offer endpoint first, fallback to offers
+      let response;
+      try {
+        // Try PUT on vendor-offer endpoint (might be PUT /vendor-offer or PUT /vendor-offer/:id)
+        response = await api.put(`${API_ROUTES.BOOKINGS}/${bookingId}/vendor-offer`, offerData, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+      } catch (err: any) {
+        // Fallback to old endpoint
+        response = await api.put(`${API_ROUTES.BOOKINGS}/${bookingId}/offers/${offerId}`, offerData, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+      }
+
+      const offerResponse = response.data?.data || response.data;
+      toast.success('Offer updated successfully!');
+      return offerResponse;
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || err.message || 'Failed to update offer';
       toast.error(errorMessage);
       throw new Error(errorMessage);
     }
@@ -750,5 +795,6 @@ export function useBookingActions() {
     submitVendorOffer,
     getBookingOffers,
     acceptVendorOffer,
+    updateVendorOffer,
   };
 }

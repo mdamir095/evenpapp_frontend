@@ -6,7 +6,7 @@ import { useUser } from '../hooks/useUser';
 import { IMAGE_BASE_URL } from '../config/api';
 import Tooltip from '../components/atoms/ToolTip';
 import LogoutButton from '../features/auth/components/Auth/LogoutButton';
-import { getUserDataFromStorage } from '../utils/permissions';
+import { getUserDataFromStorage, isSuperAdmin } from '../utils/permissions';
 import { getFeatureConfig, type MenuItemFromFeature } from '../config/featureMapping';
 import { Settings } from 'lucide-react';
 
@@ -142,6 +142,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isExpanded, toggleSidebar }) => {
   const user = useUser();
 
   const userData = getUserDataFromStorage();
+  const isUserSuperAdmin = isSuperAdmin(userData);
 
   // Generate dynamic menu items based on user permissions from login API response
   const menuItems: MenuItemFromFeature[] = useMemo(() => {
@@ -161,15 +162,38 @@ const Sidebar: React.FC<SidebarProps> = ({ isExpanded, toggleSidebar }) => {
       });
     }
     
+    // Add Form, Role, and Feature management for Super Admin only
+    if (isUserSuperAdmin) {
+      const superAdminFeatures = ['form_builder', 'role_management', 'feature_management'];
+      superAdminFeatures.forEach(uniqueId => {
+        const config = getFeatureConfig(uniqueId);
+        if (config) {
+          // Check if this feature is not already in the list (avoid duplicates)
+          const alreadyExists = baseMenuItems.some(item => item.uniqueId === uniqueId);
+          if (!alreadyExists) {
+            baseMenuItems.push({
+              to: config.route,
+              label: config.defaultLabel,
+              icon: config.icon,
+              badge: null,
+              feature: config.defaultLabel,
+              uniqueId: config.uniqueId,
+            });
+          }
+        }
+      });
+    }
+    
     // Get features from login API response (from roles)
     const userFeatures = userData?.roles?.flatMap(role => role.features || []) || [];
     
-    // Filter out dashboard and profile_setting to avoid duplicates
+    // Filter out dashboard, profile_setting, and super admin features to avoid duplicates
     // Also filter out features without uniqueId
     const filteredFeatures = userFeatures.filter(
       feature => feature && feature.uniqueId && 
       feature.uniqueId !== 'dashboard' && 
-      feature.uniqueId !== 'profile_setting'
+      feature.uniqueId !== 'profile_setting' &&
+      !(isUserSuperAdmin && ['form_builder', 'role_management', 'feature_management'].includes(feature.uniqueId))
     );
     
     // Add features from login response only
@@ -217,7 +241,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isExpanded, toggleSidebar }) => {
     }
 
     return baseMenuItems;
-  }, [userData]);
+  }, [userData, isUserSuperAdmin]);
 
   return (
     <aside

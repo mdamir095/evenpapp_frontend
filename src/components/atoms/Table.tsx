@@ -20,6 +20,7 @@ function TableComponent<T extends TableRow>(props: TableComponentProps<T>) {
     columns,
     data,
     onRowAction,
+    onRowClick,
     rowsPerPage = 10,
     searchableColumns = [],
     total = 0,
@@ -281,14 +282,27 @@ function TableComponent<T extends TableRow>(props: TableComponentProps<T>) {
                   </tr>
                 ) : (
                   displayData.map((row: T, index: number) => (
-                    <tr key={row.id ?? index} className="border-b border-gray-100">
+                    <tr 
+                      key={row.id ?? index} 
+                      className={clsx("border-b border-gray-100", {
+                        "cursor-pointer hover:bg-gray-50": onRowClick
+                      })}
+                      onClick={(e) => {
+                        // Don't trigger row click if clicking on action menu or buttons
+                        const target = e.target as HTMLElement;
+                        if (target.closest('button') || target.closest('[role="menu"]') || target.closest('.action-menu')) {
+                          return;
+                        }
+                        onRowClick?.(row);
+                      }}
+                    >
                       {tableColumns.map((col) => (
                         <td key={String(col.key)} className="px-4 py-3 cursor-default  text-sm" style={{ width: col.width ?? 150 }}>
                           {renderCellContent(col, row, index)}
                         </td>
                       ))}
                       {shouldShowActions && (
-                        <td className="px-4 py-0 whitespace-nowrap w-[10%] text-center">
+                        <td className="px-4 py-0 whitespace-nowrap w-[10%] text-center" onClick={(e) => e.stopPropagation()}>
                           <RowActionMenu
                             canEdit={canEdit}
                             canDelete={canDelete && !hideDeleteAction}

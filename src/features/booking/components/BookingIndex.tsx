@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Filter, X, Eye } from 'lucide-react';
+import { Filter, X, Eye, DollarSign, Package, Edit2, CheckCircle } from 'lucide-react';
 import Layout from '../../../layouts/Layout';
 import Breadcrumbs from '../../../components/common/BreadCrumb';
 import { useBooking } from '../hooks/useBooking';
@@ -10,7 +10,9 @@ import { DropDown } from '../../../components/atoms/DropDown';
 import { Button } from '../../../components/atoms/Button';
 import { Textarea } from '../../../components/atoms/Textarea';
 import { useToast } from '../../../components/atoms/Toast';
-import { getUserDataFromStorage } from '../../../utils/permissions';
+import { getUserDataFromStorage, isSuperAdmin } from '../../../utils/permissions';
+import { VendorOfferModal } from './VendorOfferModal';
+import type { VendorOffer } from './OfferList';
 
 // Define a more flexible booking interface for the component
 interface BookingItem {
@@ -68,7 +70,9 @@ export const BookingIndex: React.FC = () => {
   const navigate = useNavigate();
   const bookingState = useBooking();
   const { bookings = [] } = bookingState;
-  const { getBookingList, submitQuotation } = useBookingActions();
+  const { getBookingList, submitQuotation, getBookingOffers, submitVendorOffer } = useBookingActions();
+  const userData = getUserDataFromStorage();
+  const isAdmin = isSuperAdmin(userData) || userData?.roles?.some((r: any) => r.name?.toLowerCase().includes('admin'));
   
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [open, setOpen] = useState(false);
@@ -84,6 +88,10 @@ export const BookingIndex: React.FC = () => {
     totalAmount: 0
   });
   const [filteredBookings, setFilteredBookings] = useState<BookingItem[]>([]);
+  const [bookingOffers, setBookingOffers] = useState<Record<string, VendorOffer[]>>({});
+  const [selectedBookingForOffer, setSelectedBookingForOffer] = useState<BookingItem | null>(null);
+  const [showOfferModal, setShowOfferModal] = useState(false);
+  const [editingOffer, setEditingOffer] = useState<VendorOffer | null>(null);
   const toast = useToast();
   
   // Load basic stats on component mount
@@ -92,6 +100,86 @@ export const BookingIndex: React.FC = () => {
     // Load all bookings to get proper counts using booking/all API
     getBookingList(1, 100, '', {});
   }, []);
+
+  // Load offers for all bookings when bookings change (only for admin users)
+  useEffect(() => {
+    if (bookings.length > 0 && isAdmin) {
+      loadAllBookingOffers();
+    }
+  }, [bookings.length, isAdmin]); // Only depend on length to avoid infinite loops
+
+  const loadAllBookingOffers = async () => {
+    if (!isAdmin) return;
+    
+    const offersMap: Record<string, VendorOffer[]> = {};
+    const userData = getUserDataFromStorage();
+    const currentUserId = userData?.id || userData?._id;
+    
+    // Load offers for each booking in parallel
+    const offerPromises = bookings.map(async (booking: any) => {
+      const bookingId = booking.bookingId || booking.id || booking.bookingNumber;
+      if (!bookingId) return;
+      
+      try {
+        const offersData = await getBookingOffers(bookingId);
+        const offersList = Array.isArray(offersData) ? offersData : offersData?.offers || [];
+        // Filter to only show offers from current admin user
+        const adminOffers = offersList.filter((offer: VendorOffer) => 
+          offer.vendorId === currentUserId
+        );
+        offersMap[bookingId] = adminOffers;
+      } catch (error) {
+        // Silently fail if offers endpoint doesn't exist or booking has no offers
+        offersMap[bookingId] = [];
+      }
+    });
+    
+    await Promise.all(offerPromises);
+    setBookingOffers(offersMap);
+  };
+
+  const getBookingOffer = (booking: any): VendorOffer | null => {
+    const bookingId = booking.bookingId || booking.id || booking.bookingNumber;
+    if (!bookingId) return null;
+    
+    const offers = bookingOffers[bookingId] || [];
+    // Since we already filter offers by current admin user in loadAllBookingOffers,
+    // we can just return the first one (admin can only have one offer per booking)
+    return offers[0] || null;
+  };
+
+  const handleSubmitOffer = (booking: BookingItem) => {
+    setSelectedBookingForOffer(booking);
+    setEditingOffer(null);
+    setShowOfferModal(true);
+  };
+
+  const handleEditOffer = (booking: BookingItem, offer: VendorOffer) => {
+    setSelectedBookingForOffer(booking);
+    setEditingOffer(offer);
+    setShowOfferModal(true);
+  };
+
+  const handleOfferSuccess = async () => {
+    if (selectedBookingForOffer) {
+      const bookingId = selectedBookingForOffer.bookingId || selectedBookingForOffer.bookingNumber;
+      if (bookingId) {
+        try {
+          const offersData = await getBookingOffers(bookingId);
+          const offersList = Array.isArray(offersData) ? offersData : offersData?.offers || [];
+          setBookingOffers(prev => ({
+            ...prev,
+            [bookingId]: offersList,
+          }));
+        } catch (error) {
+          console.error('Failed to reload offers:', error);
+        }
+      }
+    }
+    setShowOfferModal(false);
+    setSelectedBookingForOffer(null);
+    setEditingOffer(null);
+  };
 
   // Update filtered bookings when bookings data, active tab, or service type changes
   useEffect(() => {
@@ -437,6 +525,11 @@ export const BookingIndex: React.FC = () => {
                   <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold w-[120px]">
                     Status
                   </th>
+                  {isAdmin && (
+                    <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold w-[120px]">
+                      Offer Status
+                    </th>
+                  )}
                   <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold w-[250px]">
                     Action
                   </th>
@@ -447,7 +540,7 @@ export const BookingIndex: React.FC = () => {
                   <>
                     {bookingState.loading ? (
                       <tr>
-                        <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                        <td colSpan={isAdmin ? 8 : 7} className="px-4 py-8 text-center text-gray-500">
                           <div className="flex items-center justify-center space-x-2">
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                             <span>Loading bookings...</span>
@@ -491,6 +584,24 @@ export const BookingIndex: React.FC = () => {
                               })()}
                             </span>
                           </td>
+                          {isAdmin && (
+                            <td className="px-4 py-4 whitespace-nowrap">
+                              {(() => {
+                                const existingOffer = getBookingOffer(booking);
+                                if (existingOffer) {
+                                  return (
+                                    <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700 border border-green-200">
+                                      <CheckCircle className="w-3 h-3" />
+                                      Offer Sent
+                                    </span>
+                                  );
+                                }
+                                return (
+                                  <span className="text-xs text-gray-400">No Offer</span>
+                                );
+                              })()}
+                            </td>
+                          )}
                           <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             <div className="flex items-center gap-2 flex-wrap">
                               <Button
@@ -500,6 +611,36 @@ export const BookingIndex: React.FC = () => {
                                 <Eye className="w-3 h-3" />
                                 View Details
                               </Button>
+                              
+                              {isAdmin && (() => {
+                                const existingOffer = getBookingOffer(booking);
+                                if (existingOffer) {
+                                  return (
+                                    <>
+                                      <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700 border border-green-200">
+                                        <CheckCircle className="w-3 h-3" />
+                                        Offer Sent
+                                      </span>
+                                      <Button
+                                        onClick={() => handleEditOffer(booking, existingOffer)}
+                                        className="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-xs whitespace-nowrap flex items-center gap-1"
+                                      >
+                                        <Edit2 className="w-3 h-3" />
+                                        Edit Offer
+                                      </Button>
+                                    </>
+                                  );
+                                }
+                                return (
+                                  <Button
+                                    onClick={() => handleSubmitOffer(booking)}
+                                    className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs whitespace-nowrap flex items-center gap-1"
+                                  >
+                                    <DollarSign className="w-3 h-3" />
+                                    Submit Offer
+                                  </Button>
+                                );
+                              })()}
                             </div>
                           </td>
                         </tr>
@@ -507,7 +648,7 @@ export const BookingIndex: React.FC = () => {
                     ) : (
                       // No bookings found message
                       <tr>
-                        <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                        <td colSpan={isAdmin ? 8 : 7} className="px-4 py-8 text-center text-gray-500">
                           <div className="flex flex-col items-center justify-center space-y-2">
                             <div className="text-gray-400">
                               <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -527,6 +668,22 @@ export const BookingIndex: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Admin Offer Modal */}
+        {showOfferModal && selectedBookingForOffer && (
+          <VendorOfferModal
+            isOpen={showOfferModal}
+            onClose={() => {
+              setShowOfferModal(false);
+              setSelectedBookingForOffer(null);
+              setEditingOffer(null);
+            }}
+            bookingId={selectedBookingForOffer.bookingId || selectedBookingForOffer.bookingNumber || ''}
+            bookingNumber={selectedBookingForOffer.bookingNumber}
+            existingOffer={editingOffer || undefined}
+            onSuccess={handleOfferSuccess}
+          />
+        )}
 
         {/* Event Quotation Modal - Right Side Slide */}
         {showQuotationModal && (

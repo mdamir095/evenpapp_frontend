@@ -50,6 +50,7 @@ export interface TableComponentProps<T extends TableRow> {
   
   // Actions
   onRowAction?: (action: TableAction, row: T) => void;
+  onRowClick?: (row: T) => void;
   
   // Search
   searchQuery?: string;

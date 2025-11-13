@@ -3,14 +3,20 @@ import { CheckCircle, XCircle, Clock, DollarSign, Package, User } from 'lucide-r
 import { Button } from '../../../components/atoms/Button';
 import { useToast } from '../../../components/atoms/Toast';
 
+export interface ExtraService {
+  name: string;
+  description: string;
+  price: number;
+}
+
 export interface VendorOffer {
   id: string;
   vendorId: string;
   vendorName: string;
   offerAmount: number;
-  extraServices: string;
+  extraServices: ExtraService[] | string; // Support both array and string for backward compatibility
   notes?: string;
-  status: 'pending' | 'accepted' | 'rejected';
+  status?: 'pending' | 'accepted' | 'rejected' | string; // Make status optional and allow any string
   createdAt: string;
 }
 
@@ -45,7 +51,16 @@ export const OfferList: React.FC<OfferListProps> = ({
     }
   };
 
-  const getStatusConfig = (status: string) => {
+  const getStatusConfig = (status: string | undefined | null) => {
+    // Handle undefined, null, or empty status
+    if (!status || typeof status !== 'string') {
+      return {
+        color: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+        icon: Clock,
+        label: 'Pending',
+      };
+    }
+
     switch (status.toLowerCase()) {
       case 'accepted':
         return {
@@ -119,8 +134,9 @@ export const OfferList: React.FC<OfferListProps> = ({
               {offers.map((offer) => {
                 const statusConfig = getStatusConfig(offer.status);
                 const StatusIcon = statusConfig.icon;
-                const isAccepted = offer.status === 'accepted';
-                const isPending = offer.status === 'pending';
+                const normalizedStatus = offer.status?.toLowerCase() || 'pending';
+                const isAccepted = normalizedStatus === 'accepted';
+                const isPending = normalizedStatus === 'pending';
 
                 return (
                   <tr key={offer.id} className="hover:bg-gray-50">
@@ -143,8 +159,26 @@ export const OfferList: React.FC<OfferListProps> = ({
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900 max-w-xs truncate" title={offer.extraServices}>
-                        {offer.extraServices}
+                      <div className="text-sm text-gray-900 max-w-xs">
+                        {Array.isArray(offer.extraServices) ? (
+                          <div className="space-y-1">
+                            {offer.extraServices.map((service: ExtraService, idx: number) => (
+                              <div key={idx} className="border-l-2 border-blue-200 pl-2">
+                                <div className="font-medium">{service.name}</div>
+                                <div className="text-xs text-gray-600">{service.description}</div>
+                                {service.price > 0 && (
+                                  <div className="text-xs text-green-600 font-medium">
+                                    ₹{service.price.toLocaleString()}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="truncate" title={offer.extraServices}>
+                            {offer.extraServices}
+                          </div>
+                        )}
                       </div>
                       {offer.notes && (
                         <div className="text-xs text-gray-500 mt-1 max-w-xs truncate" title={offer.notes}>

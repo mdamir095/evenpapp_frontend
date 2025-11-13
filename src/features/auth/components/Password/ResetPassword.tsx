@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { resetPasswordSchema, type ResetPasswordSchemaType  } from '../../schemas/login.schema';
 import { Form } from '../../../../components/common/Form';
 import { InputGroup } from '../../../../components/molecules/InputGroup';
@@ -6,24 +6,50 @@ import { Button } from '../../../../components/atoms/Button';
 import { FormError } from '../../../../components/atoms/FormError';
 import { useAuth } from '../../hooks/useAuth';
 import { useAuthActions } from '../../hooks/useAuthActions';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 type ResetFormValues = ResetPasswordSchemaType;
 
 const ResetPassword: React.FC = () => {
-    const { loading, error } = useAuth();
+    const { loading, error, isAuthenticated } = useAuth();
     const { resetPassword } = useAuthActions();
     const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
     const token = searchParams.get('token');
+    const email = searchParams.get('email');
+
+    // Check if token exists
+    useEffect(() => {
+        if (!token) {
+            toast.error('Invalid or missing reset token. Please request a new password reset link.');
+            navigate('/forgot-password');
+        }
+    }, [token, navigate]);
+
+    // Navigate to login after successful password reset
+    useEffect(() => {
+        if (isAuthenticated && !loading && !error) {
+            toast.success('Password reset successfully! Redirecting to login...');
+            setTimeout(() => {
+                navigate('/login');
+            }, 2000);
+        }
+    }, [isAuthenticated, loading, error, navigate]);
 
     const onSubmit = async (data: ResetFormValues) => {
-        resetPassword(data.newPassword, token!);
-        if(error){
-            toast.error(error);
-        }else{
-            toast.success('Password reset successfully');
-        }    
+        if (!token) {
+            toast.error('Invalid or missing reset token');
+            return;
+        }
+
+        try {
+            await resetPassword(data.newPassword, token);
+            // Success handling is done in useEffect above
+        } catch (err: any) {
+            // Error is already handled by the Redux action and will be shown via error state
+            console.error('Password reset error:', err);
+        }
     };
   
   return (
@@ -39,6 +65,18 @@ const ResetPassword: React.FC = () => {
                 </h1>
             </div>
             <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6 px-12">Reset Password</h2>
+            {email && (
+              <p className="text-sm text-center text-gray-600 mb-4 px-12">
+                Resetting password for: <span className="font-medium">{email}</span>
+              </p>
+            )}
+            {!token && (
+              <div className="px-12 mb-4">
+                <p className="text-red-600 text-sm text-center">
+                  Invalid or missing reset token. Please request a new password reset link.
+                </p>
+              </div>
+            )}
             <Form<ResetFormValues> mode="all" schema={resetPasswordSchema} onSubmit={onSubmit} className="pace-y-4 grid grid-row-2 gap-4 mb-6 w-full px-12">
                
               <InputGroup
@@ -58,11 +96,17 @@ const ResetPassword: React.FC = () => {
                 className='w-full'
               />
               <FormError message={error ?? undefined} />
-              <Button type="submit" disabled={loading} className="w-auto mt-4 m-auto">
-                {loading ? 'Sending...' : 'Reset Password'}
+              <Button type="submit" disabled={loading || !token} className="w-auto mt-4 m-auto">
+                {loading ? 'Resetting...' : 'Reset Password'}
               </Button>
-               <Button type="button" disabled={loading} variant='muted' className="w-auto mt-4 m-auto">
-                    {loading ? 'Sending...' : 'Cancel'}
+               <Button 
+                 type="button" 
+                 disabled={loading} 
+                 variant='muted' 
+                 className="w-auto mt-4 m-auto"
+                 onClick={() => navigate('/login')}
+               >
+                    Cancel
                 </Button>
             </Form>
             {/*  */}

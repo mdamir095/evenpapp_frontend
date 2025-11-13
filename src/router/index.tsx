@@ -69,6 +69,7 @@ const AppRoutes = () => {
         <Route path={ROUTING.REGISTER} element={<RegisterForm />} />
         <Route path={ROUTING.FORGOT_PASSWORD} element={<ForgotPassword />} />
         <Route path={ROUTING.RESET_PASSWORD} element={<ResetPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* ------------------ Protected Routes ------------------- */}
         <Route path={ROUTING.DASHBOARD} element={<RequireAuth><Dashboard /></RequireAuth>} />

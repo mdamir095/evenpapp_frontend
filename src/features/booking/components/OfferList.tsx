@@ -1,7 +1,5 @@
 import React from 'react';
-import { CheckCircle, XCircle, Clock, DollarSign, Package, User } from 'lucide-react';
-import { Button } from '../../../components/atoms/Button';
-import { useToast } from '../../../components/atoms/Toast';
+import { XCircle, Clock, DollarSign, Package, User } from 'lucide-react';
 
 export interface ExtraService {
   name: string;
@@ -10,46 +8,36 @@ export interface ExtraService {
 }
 
 export interface VendorOffer {
-  id: string;
-  vendorId: string;
-  vendorName: string;
-  offerAmount: number;
-  extraServices: ExtraService[] | string; // Support both array and string for backward compatibility
+  // API response fields
+  offerId?: string;
+  id?: string; // Support both offerId and id for backward compatibility
+  bookingId?: string;
+  userId?: string;
+  userName?: string;
+  offerAddedBy?: string;
+  amount?: number; // API uses 'amount' not 'offerAmount'
+  offerAmount?: number; // Keep for backward compatibility
+  extraServices?: ExtraService[] | string[] | string; // Support array of objects, array of strings, or string
   notes?: string;
-  status?: 'pending' | 'accepted' | 'rejected' | string; // Make status optional and allow any string
-  createdAt: string;
+  status?: 'pending' | 'accepted' | 'rejected' | string;
+  createdAt?: string;
+  // Legacy fields for backward compatibility
+  vendorId?: string;
+  vendorName?: string;
 }
 
 interface OfferListProps {
   offers: VendorOffer[];
   bookingId: string;
-  onAcceptOffer: (offerId: string) => Promise<void>;
+  onAcceptOffer?: (offerId: string) => Promise<void>; // Make optional since we're removing actions
   loading?: boolean;
 }
 
 export const OfferList: React.FC<OfferListProps> = ({
   offers,
   bookingId,
-  onAcceptOffer,
   loading = false,
 }) => {
-  const toast = useToast();
-  const [acceptingOfferId, setAcceptingOfferId] = React.useState<string | null>(null);
-
-  const handleAcceptOffer = async (offerId: string) => {
-    if (!window.confirm('Are you sure you want to accept this offer?')) {
-      return;
-    }
-
-    setAcceptingOfferId(offerId);
-    try {
-      await onAcceptOffer(offerId);
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to accept offer');
-    } finally {
-      setAcceptingOfferId(null);
-    }
-  };
 
   const getStatusConfig = (status: string | undefined | null) => {
     // Handle undefined, null, or empty status
@@ -125,21 +113,22 @@ export const OfferList: React.FC<OfferListProps> = ({
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Submitted
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {offers.map((offer) => {
                 const statusConfig = getStatusConfig(offer.status);
                 const StatusIcon = statusConfig.icon;
-                const normalizedStatus = offer.status?.toLowerCase() || 'pending';
-                const isAccepted = normalizedStatus === 'accepted';
-                const isPending = normalizedStatus === 'pending';
+                
+                // Get offer ID (support both offerId and id)
+                const offerId = offer.offerId || offer.id || '';
+                // Get vendor/user name (support both userName and vendorName)
+                const vendorName = offer.userName || offer.vendorName || 'Unknown Vendor';
+                // Get amount (support both amount and offerAmount)
+                const amount = offer.amount || offer.offerAmount || 0;
 
                 return (
-                  <tr key={offer.id} className="hover:bg-gray-50">
+                  <tr key={offerId} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
@@ -147,37 +136,55 @@ export const OfferList: React.FC<OfferListProps> = ({
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">
-                            {offer.vendorName}
+                            {vendorName}
                           </div>
+                          {offer.offerAddedBy && (
+                            <div className="text-xs text-gray-500">
+                              Added by: {offer.offerAddedBy}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center text-sm font-semibold text-gray-900">
                         <DollarSign className="w-4 h-4 mr-1 text-green-600" />
-                        ₹{offer.offerAmount.toLocaleString()}
+                        ₹{amount.toLocaleString()}
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900 max-w-xs">
                         {Array.isArray(offer.extraServices) ? (
                           <div className="space-y-1">
-                            {offer.extraServices.map((service: ExtraService, idx: number) => (
-                              <div key={idx} className="border-l-2 border-blue-200 pl-2">
-                                <div className="font-medium">{service.name}</div>
-                                <div className="text-xs text-gray-600">{service.description}</div>
-                                {service.price > 0 && (
-                                  <div className="text-xs text-green-600 font-medium">
-                                    ₹{service.price.toLocaleString()}
+                            {offer.extraServices.map((service: any, idx: number) => {
+                              // Handle array of objects (ExtraService)
+                              if (typeof service === 'object' && service !== null) {
+                                return (
+                                  <div key={idx} className="border-l-2 border-blue-200 pl-2">
+                                    <div className="font-medium">{service.name || 'Unnamed Service'}</div>
+                                    <div className="text-xs text-gray-600">{service.description || 'No description'}</div>
+                                    {service.price && service.price > 0 && (
+                                      <div className="text-xs text-green-600 font-medium">
+                                        ₹{service.price.toLocaleString()}
+                                      </div>
+                                    )}
                                   </div>
-                                )}
-                              </div>
-                            ))}
+                                );
+                              }
+                              // Handle array of strings
+                              return (
+                                <div key={idx} className="border-l-2 border-blue-200 pl-2">
+                                  <div className="text-sm">{service || 'No service name'}</div>
+                                </div>
+                              );
+                            })}
                           </div>
-                        ) : (
+                        ) : typeof offer.extraServices === 'string' ? (
                           <div className="truncate" title={offer.extraServices}>
                             {offer.extraServices}
                           </div>
+                        ) : (
+                          <span className="text-gray-400 text-xs">No extra services</span>
                         )}
                       </div>
                       {offer.notes && (
@@ -195,30 +202,7 @@ export const OfferList: React.FC<OfferListProps> = ({
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(offer.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      {isPending && (
-                        <Button
-                          variant="primary"
-                          size="sm"
-                          onClick={() => handleAcceptOffer(offer.id)}
-                          disabled={acceptingOfferId === offer.id}
-                          className="bg-green-600 hover:bg-green-700 text-white"
-                        >
-                          {acceptingOfferId === offer.id ? (
-                            'Accepting...'
-                          ) : (
-                            <>
-                              <CheckCircle className="w-4 h-4 mr-1" />
-                              Accept Offer
-                            </>
-                          )}
-                        </Button>
-                      )}
-                      {isAccepted && (
-                        <span className="text-green-600 text-sm font-medium">Accepted</span>
-                      )}
+                      {offer.createdAt ? new Date(offer.createdAt).toLocaleDateString() : 'N/A'}
                     </td>
                   </tr>
                 );

@@ -43,12 +43,32 @@ export const BookingDetail: React.FC = () => {
     try {
       const offersData = await getBookingOffers(id);
       const offersList = Array.isArray(offersData) ? offersData : offersData?.offers || [];
-      setOffers(offersList);
+      
+      // Transform API response to match VendorOffer interface
+      const transformedOffers: VendorOffer[] = offersList.map((offer: any) => ({
+        offerId: offer.offerId,
+        id: offer.offerId || offer.id, // Use offerId as primary id
+        bookingId: offer.bookingId,
+        userId: offer.userId,
+        userName: offer.userName,
+        offerAddedBy: offer.offerAddedBy,
+        amount: offer.amount,
+        offerAmount: offer.amount || offer.offerAmount, // Map amount to offerAmount for backward compatibility
+        extraServices: offer.extraServices,
+        notes: offer.notes,
+        status: offer.status,
+        createdAt: offer.createdAt,
+        // Legacy fields
+        vendorId: offer.userId || offer.vendorId,
+        vendorName: offer.userName || offer.vendorName,
+      }));
+      
+      setOffers(transformedOffers);
       
       // Check if any offer is accepted
-      const acceptedOffer = offersList.find((o: VendorOffer) => o.status === 'accepted');
+      const acceptedOffer = transformedOffers.find((o: VendorOffer) => o.status === 'accepted');
       if (acceptedOffer) {
-        setAcceptedOfferId(acceptedOffer.id);
+        setAcceptedOfferId(acceptedOffer.offerId || acceptedOffer.id || '');
         setShowChat(true);
       }
     } catch (error: any) {
@@ -225,8 +245,8 @@ export const BookingDetail: React.FC = () => {
                 </div>
                 <ChatInterface
                   bookingId={id || ''}
-                  vendorId={acceptedOffer.vendorId}
-                  vendorName={acceptedOffer.vendorName}
+                  vendorId={acceptedOffer.userId || acceptedOffer.vendorId || ''}
+                  vendorName={acceptedOffer.userName || acceptedOffer.vendorName || 'Unknown Vendor'}
                 />
               </div>
             ) : acceptedOfferId ? (

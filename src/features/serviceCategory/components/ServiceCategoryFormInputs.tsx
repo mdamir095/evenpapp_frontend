@@ -62,7 +62,13 @@ const ServiceCategoryFormInputs: React.FC = () => {
     }
   };
 
-  const canSubmit = useMemo(() => isDirty && !!methods.watch('label')?.trim() && !!methods.watch('type')?.trim() && !!methods.watch('required'), [isDirty, methods]);
+  const labelValue = methods.watch('label');
+  const typeValue = methods.watch('type');
+  const requiredValue = methods.watch('required');
+  const canSubmit = useMemo(
+    () => isDirty && !!labelValue?.trim() && !!typeValue?.trim() && !!requiredValue,
+    [isDirty, labelValue, typeValue, requiredValue]
+  );
 
   return (
     <>

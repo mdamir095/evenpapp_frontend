@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { ListRestart, MoreVertical, Pencil, Trash2, Power, PowerOff, MapPinned, Shield, ShieldOff, FileText } from "lucide-react";
+import { ListRestart, MoreVertical, Pencil, Trash2, Power, PowerOff, MapPinned, Shield, ShieldOff, FileText,PlusIcon } from "lucide-react";
 import { createPortal } from "react-dom";
 
 type RowActionMenuProps = {
@@ -15,6 +15,7 @@ type RowActionMenuProps = {
   onUnblock?: () => void;
   onLocation?: () => void;
   onQuotation?: () => void;
+  onFormInputs?: () => void;
   canActivate?: boolean;
   canDeactivate?: boolean;
   canBlock?: boolean;
@@ -22,6 +23,7 @@ type RowActionMenuProps = {
   isActive?: boolean;
   isBlocked?: boolean;
   showLocationOption?: boolean;
+  showCategoryInputsOption?: boolean;
   showQuotationOption?: boolean;
 };
 
@@ -37,6 +39,7 @@ export const RowActionMenu = ({
   onBlock,
   onUnblock,
   onLocation,
+  onFormInputs,
   canActivate = false,
   canDeactivate = false,
   canBlock = false,
@@ -44,6 +47,7 @@ export const RowActionMenu = ({
   isActive = true,
   isBlocked = false,
   showLocationOption = true,
+  showCategoryInputsOption = false,
   showQuotationOption = false,
 }: RowActionMenuProps) => {
   const [open, setOpen] = useState(false);
@@ -230,6 +234,18 @@ export const RowActionMenu = ({
                 role="menuitem"
               >
                 <MapPinned  className="size-4" /> Add Location
+              </li>
+            )}
+            {showCategoryInputsOption && (
+              <li
+                onClick={() => {
+                  setOpen(false);
+                  onFormInputs?.();
+                }}
+                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-gray-700 cursor-pointer"
+                role="menuitem"
+              >
+                <PlusIcon  className="size-4" /> Add form inputs
               </li>
             )}
             {showQuotationOption && (

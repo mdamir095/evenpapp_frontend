@@ -66,6 +66,12 @@ export const ROUTING = {
     GET_CATEGORY_BY_ID: "service-category/:id",
     UPDATE_CATEGORY: "service-category/:id",
     DELETE_CATEGORY: "service-category/:id",
+
+    ADD_CATEGORY_FORM_INPUTS: "service-category/form-inputs/add/:id",
+    EDIT_CATEGORY_FORM_INPUTS: "service-category/form-inputs/edit/:id",
+    DELETE_CATEGORY_FORM_INPUTS: "service-category/form-inputs/delete/:id",
+    CATEGORY_FORM_INPUTS: "service-category/form-inputs/:id",
+
     VENUE_MANAGEMENT: "/venue-management",
     ADD_VENUE: "/venue-management/new",
     UPDATE_VENUE: "venue-management/:id",

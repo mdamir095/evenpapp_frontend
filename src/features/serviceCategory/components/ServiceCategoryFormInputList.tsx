@@ -7,17 +7,18 @@ import { useToast } from '../../../components/atoms/Toast';
 import { useServiceCategory } from '../hooks/useServiceCategory';
 import { useServiceCategoryActions } from '../hooks/useServiceCategoryActions';
 import { useNavigate } from 'react-router-dom';
-import {ROUTING} from '../../../constants/routes';
+import { useParams } from 'react-router-dom';
 
-const ServiceCategoryList: React.FC = () => {
+
+const ServiceCategoryFormInputList: React.FC = () => {
   const { categories = [], pagination, loading } = useServiceCategory();
+  const { id } = useParams();
   const { getCategoryList, removeCategory,updateServiceCategoryStatus } = useServiceCategoryActions();
 
+  const [pathAddInput] = useState('/service-category/form-inputs/add/' + id);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [selectedCategoryForFormInputs, setSelectedCategoryForFormInputs] = useState<ServiceCategoryRow | null>(null);
-  const [showCategoryFormInputsModal, setShowCategoryFormInputsModal] =  useState(false);
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -62,7 +63,7 @@ const ServiceCategoryList: React.FC = () => {
     else if (action === 'view') {
       // View service category
     }else if (action === 'add form inputs') {
-       navigate(`/service-category/form-inputs/${row.id}`);
+       navigate(`/service-category/form-inputs/add/${row.id}`);
     }
   };
 
@@ -125,10 +126,10 @@ const ServiceCategoryList: React.FC = () => {
           onRowAction={handleAction}
           total={pagination?.total ?? 0}
           currentPage={currentPage}
-          featureName="Service Category"
+          featureName="Service category dynamic form inputs"
           rowsPerPage={rowsPerPage}
           onPageChange={handlePageChange}
-          heading="Service Category"
+          heading="Service category dynamic form inputs"
           searchBar
           searchQuery={searchQuery}
           showResetPasswordOption={false}
@@ -143,8 +144,8 @@ const ServiceCategoryList: React.FC = () => {
           }}
           loading={loading}
           showAddButton
-          addButtonRoute="/service-category/new"
-          addButtonText='Add Category'
+          addButtonRoute={pathAddInput}
+          addButtonText='Add Form Input'
           showLocationOption={false}
           showCategoryInputsOption={true}
         />
@@ -159,48 +160,10 @@ const ServiceCategoryList: React.FC = () => {
             cancelLabel="Cancel"
           />
           )}
-          
-          {/* Add Category Forms Input  Modal */}
-          {showCategoryFormInputsModal && selectedCategoryForFormInputs && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-              <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-                <div className="p-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-semibold text-gray-800">
-                      Manage Dynamic form inputs for {selectedCategoryForFormInputs.name}
-                    </h2>
-                    {/* <Button
-                    variant='muted'
-                      onClick={() => {
-                        setShowLocationModal(false);
-                        setSelectedVenueForLocation(null);
-                      }}
-                      className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
-                    >
-                      <X className='w-6 h-6' />
-                    </Button> */}
-                  </div>
-                  
-                  {/* <ListingLocationManager
-                    serviceId={selectedVenueForLocation.id}
-                    serviceName={selectedVenueForLocation.name}
-                    onLocationAdded={(location) => {
-                      toast.success(`Location added to ${selectedVenueForLocation.name} successfully`);
-                    }}
-                                         onDeleteLocation={(location) => {
-                       setLocationToDelete(location);
-                       setShowLocationDeleteModal(true);
-                       setShowLocationModal(false); // Hide the location listing modal
-                     }}
-                  /> */}
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </>
     </Layout>
   );
 };
 
-export default ServiceCategoryList;
+export default ServiceCategoryFormInputList;

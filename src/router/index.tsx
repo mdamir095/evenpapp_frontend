@@ -41,6 +41,7 @@ import { ROUTING } from '../constants/routes';
 import DynamicFormList from '../features/forms/components/FormList';
 import ServiceCategoryList from '../features/serviceCategory/components/ServiceCategoryList';
 import ServiceCategoryForm from '../features/serviceCategory/components/ServiceCategoryForm';
+import ServiceCategoryFormInputs from '../features/serviceCategory/components/ServiceCategoryFormInputs';
 import VenueList from '../features/venue/components/VenueList';
 import VendorList from '../features/vendorManagement/components/VendorList';
 import VendorForm from '../features/vendorManagement/components/VendorForm';
@@ -57,6 +58,7 @@ import BookingDetail from '../features/booking/components/BookingDetail';
 
 import NotFoundPage from '../pages/NotFoundPage';
 import UnauthorizedPage from '../pages/UnauthorizedPage';
+import ServiceCategoryFormInputList from '../features/serviceCategory/components/ServiceCategoryFormInputList';
 
 const AppRoutes = () => {
   return (
@@ -103,6 +105,8 @@ const AppRoutes = () => {
         <Route path={ROUTING.GET_ALL_CATEGORIES} element={<ProtectedRoute requiredFeature="service_category" requiredPermission="read"><ServiceCategoryList /></ProtectedRoute>} />
         <Route path={ROUTING.ADD_CATEGORY} element={<ProtectedRoute requiredFeature="service_category" requiredPermission="write"><ServiceCategoryForm /></ProtectedRoute>} />
         <Route path={ROUTING.UPDATE_CATEGORY} element={<ProtectedRoute requiredFeature="service_category" requiredPermission="write"><ServiceCategoryForm /></ProtectedRoute>} />
+        <Route path={ROUTING.ADD_CATEGORY_FORM_INPUTS} element={<ProtectedRoute requiredFeature="service_category" requiredPermission="write"><ServiceCategoryFormInputs /></ProtectedRoute>} />
+        <Route path={ROUTING.CATEGORY_FORM_INPUTS} element={<ProtectedRoute requiredFeature="service_category" requiredPermission="read"><ServiceCategoryFormInputList /></ProtectedRoute>} />
 
         {/* Vendor Management - Protected by Vendor Management feature permission */}
         <Route path={ROUTING.VENDOR_MANAGEMENT} element={<ProtectedRoute requiredFeature="vendor_management" requiredPermission="read"><VendorList /></ProtectedRoute>} />

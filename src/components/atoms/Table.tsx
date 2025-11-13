@@ -44,6 +44,7 @@ function TableComponent<T extends TableRow>(props: TableComponentProps<T>) {
     enterprisesDropdown,
     hideDeleteAction = false,
     showLocationOption = false,
+    showCategoryInputsOption = false,
     showQuotationOption = false,
   } = props;
 
@@ -319,10 +320,12 @@ function TableComponent<T extends TableRow>(props: TableComponentProps<T>) {
                             onUnblock={() => onRowAction?.("unblock", row)}
                             onLocation={() => onRowAction?.("add location", row)}
                             onQuotation={() => onRowAction?.("quotation", row)}
+                            onFormInputs={() => onRowAction?.("add form inputs", row)}
                             canBlock={canEdit}
                             canUnblock={canEdit}
                             isBlocked={Boolean((row as any)?.isBlocked)}
                             showLocationOption={showLocationOption}
+                            showCategoryInputsOption={showCategoryInputsOption}
                             showQuotationOption={showQuotationOption}
                           />
                         </td>

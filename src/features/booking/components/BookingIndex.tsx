@@ -115,6 +115,14 @@ export const BookingIndex: React.FC = () => {
     const userData = getUserDataFromStorage();
     const currentUserId = userData?.id || userData?._id;
     
+    // Helper function to compare vendor IDs (handle string and object ID formats)
+    const isCurrentUserOffer = (offer: VendorOffer): boolean => {
+      if (!currentUserId) return false;
+      const offerVendorId = offer.vendorId || (offer as any).vendor?._id || (offer as any).vendor?.id;
+      // Compare as strings to handle different ID formats
+      return String(offerVendorId) === String(currentUserId);
+    };
+    
     // Load offers for each booking in parallel
     const offerPromises = bookings.map(async (booking: any) => {
       const bookingId = booking.bookingId || booking.id || booking.bookingNumber;
@@ -124,9 +132,7 @@ export const BookingIndex: React.FC = () => {
         const offersData = await getBookingOffers(bookingId);
         const offersList = Array.isArray(offersData) ? offersData : offersData?.offers || [];
         // Filter to only show offers from current admin user
-        const adminOffers = offersList.filter((offer: VendorOffer) => 
-          offer.vendorId === currentUserId
-        );
+        const adminOffers = offersList.filter(isCurrentUserOffer);
         offersMap[bookingId] = adminOffers;
       } catch (error) {
         // Silently fail if offers endpoint doesn't exist or booking has no offers
@@ -167,10 +173,30 @@ export const BookingIndex: React.FC = () => {
         try {
           const offersData = await getBookingOffers(bookingId);
           const offersList = Array.isArray(offersData) ? offersData : offersData?.offers || [];
+          
+          // Filter to only show offers from current admin user (same as loadAllBookingOffers)
+          const userData = getUserDataFromStorage();
+          const currentUserId = userData?.id || userData?._id;
+          
+          // Helper function to compare vendor IDs (handle string and object ID formats)
+          const isCurrentUserOffer = (offer: VendorOffer): boolean => {
+            if (!currentUserId) return false;
+            const offerVendorId = offer.vendorId || (offer as any).vendor?._id || (offer as any).vendor?.id;
+            // Compare as strings to handle different ID formats
+            return String(offerVendorId) === String(currentUserId);
+          };
+          
+          const adminOffers = offersList.filter(isCurrentUserOffer);
+          
           setBookingOffers(prev => ({
             ...prev,
-            [bookingId]: offersList,
+            [bookingId]: adminOffers,
           }));
+          
+          // Also reload all booking offers to ensure consistency
+          if (bookings.length > 0) {
+            await loadAllBookingOffers();
+          }
         } catch (error) {
           console.error('Failed to reload offers:', error);
         }

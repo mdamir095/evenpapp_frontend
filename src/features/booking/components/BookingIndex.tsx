@@ -115,6 +115,15 @@ export const BookingIndex: React.FC = () => {
     const userData = getUserDataFromStorage();
     const currentUserId = userData?.id || userData?._id;
     
+    // Helper function to compare vendor/user IDs (handle string and object ID formats)
+    const isCurrentUserOffer = (offer: any): boolean => {
+      if (!currentUserId) return false;
+      // Check offerAddedBy first (new API field), then userId, then vendorId
+      const offerUserId = offer.offerAddedBy || offer.userId || offer.vendorId || (offer as any).vendor?._id || (offer as any).vendor?.id;
+      // Compare as strings to handle different ID formats
+      return String(offerUserId) === String(currentUserId);
+    };
+    
     // Load offers for each booking in parallel
     const offerPromises = bookings.map(async (booking: any) => {
       const bookingId = booking.bookingId || booking.id || booking.bookingNumber;
@@ -123,10 +132,28 @@ export const BookingIndex: React.FC = () => {
       try {
         const offersData = await getBookingOffers(bookingId);
         const offersList = Array.isArray(offersData) ? offersData : offersData?.offers || [];
+        
+        // Transform API response to match VendorOffer interface
+        const transformedOffers: VendorOffer[] = offersList.map((offer: any) => ({
+          offerId: offer.offerId,
+          id: offer.offerId || offer.id,
+          bookingId: offer.bookingId,
+          userId: offer.userId,
+          userName: offer.userName,
+          offerAddedBy: offer.offerAddedBy,
+          amount: offer.amount,
+          offerAmount: offer.amount || offer.offerAmount,
+          extraServices: offer.extraServices,
+          notes: offer.notes,
+          status: offer.status,
+          createdAt: offer.createdAt,
+          // Legacy fields
+          vendorId: offer.userId || offer.vendorId,
+          vendorName: offer.userName || offer.vendorName,
+        }));
+        
         // Filter to only show offers from current admin user
-        const adminOffers = offersList.filter((offer: VendorOffer) => 
-          offer.vendorId === currentUserId
-        );
+        const adminOffers = transformedOffers.filter(isCurrentUserOffer);
         offersMap[bookingId] = adminOffers;
       } catch (error) {
         // Silently fail if offers endpoint doesn't exist or booking has no offers
@@ -167,10 +194,50 @@ export const BookingIndex: React.FC = () => {
         try {
           const offersData = await getBookingOffers(bookingId);
           const offersList = Array.isArray(offersData) ? offersData : offersData?.offers || [];
+          
+          // Transform API response to match VendorOffer interface
+          const transformedOffers: VendorOffer[] = offersList.map((offer: any) => ({
+            offerId: offer.offerId,
+            id: offer.offerId || offer.id,
+            bookingId: offer.bookingId,
+            userId: offer.userId,
+            userName: offer.userName,
+            offerAddedBy: offer.offerAddedBy,
+            amount: offer.amount,
+            offerAmount: offer.amount || offer.offerAmount,
+            extraServices: offer.extraServices,
+            notes: offer.notes,
+            status: offer.status,
+            createdAt: offer.createdAt,
+            // Legacy fields
+            vendorId: offer.userId || offer.vendorId,
+            vendorName: offer.userName || offer.vendorName,
+          }));
+          
+          // Filter to only show offers from current admin user (same as loadAllBookingOffers)
+          const userData = getUserDataFromStorage();
+          const currentUserId = userData?.id || userData?._id;
+          
+          // Helper function to compare vendor/user IDs (handle string and object ID formats)
+          const isCurrentUserOffer = (offer: VendorOffer): boolean => {
+            if (!currentUserId) return false;
+            // Check offerAddedBy first (new API field), then userId, then vendorId
+            const offerUserId = offer.offerAddedBy || offer.userId || offer.vendorId || (offer as any).vendor?._id || (offer as any).vendor?.id;
+            // Compare as strings to handle different ID formats
+            return String(offerUserId) === String(currentUserId);
+          };
+          
+          const adminOffers = transformedOffers.filter(isCurrentUserOffer);
+          
           setBookingOffers(prev => ({
             ...prev,
-            [bookingId]: offersList,
+            [bookingId]: adminOffers,
           }));
+          
+          // Also reload all booking offers to ensure consistency
+          if (bookings.length > 0) {
+            await loadAllBookingOffers();
+          }
         } catch (error) {
           console.error('Failed to reload offers:', error);
         }

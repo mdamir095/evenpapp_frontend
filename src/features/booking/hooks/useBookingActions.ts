@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import api from '../../../axios';
 import { useToast } from '../../../components/atoms/Toast';
 import { API_ROUTES } from '../../../constants/routes';
+import { getUserDataFromStorage } from '../../../utils/permissions';
 import { 
   fetchBookingsStart,
   fetchBookingsSuccess,
@@ -488,8 +489,26 @@ export function useBookingActions() {
   // Submit vendor offer for booking
   const submitVendorOffer = useCallback(async (bookingId: string, offerData: any) => {
     try {
+      // Get current user ID to add to offer
+      const userData = getUserDataFromStorage();
+      // Try multiple possible field names for user ID
+      const offerAddedBy = userData?.id || userData?._id || userData?.userId || userData?.user_id || (userData as any)?.user?.id || (userData as any)?.user?._id || null;
+
+      // Debug logging
+      console.log('User data from storage:', userData);
+      console.log('Extracted offerAddedBy:', offerAddedBy);
+
+      // Prepare payload with offerAddedBy
+      const payload = {
+        ...offerData,
+        offerAddedBy: offerAddedBy,
+      };
+
+      // Debug logging
+      console.log('Final payload being sent:', payload);
+
       // Use the correct endpoint: /booking/{bookingId}/vendor-offer
-      const response = await api.post(`${API_ROUTES.BOOKINGS}/${bookingId}/vendor-offer`, offerData, {
+      const response = await api.post(`${API_ROUTES.BOOKINGS}/${bookingId}/vendor-offer`, payload, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -559,11 +578,22 @@ export function useBookingActions() {
   // Update vendor offer
   const updateVendorOffer = useCallback(async (bookingId: string, offerId: string, offerData: any) => {
     try {
+      // Get current user ID to add to offer
+      const userData = getUserDataFromStorage();
+      // Try multiple possible field names for user ID
+      const offerAddedBy = userData?.id || userData?._id || userData?.userId || userData?.user_id || (userData as any)?.user?.id || (userData as any)?.user?._id || null;
+
+      // Prepare payload with offerAddedBy
+      const payload = {
+        ...offerData,
+        offerAddedBy: offerAddedBy,
+      };
+
       // Try vendor-offer endpoint first, fallback to offers
       let response;
       try {
         // Try PUT on vendor-offer endpoint (might be PUT /vendor-offer or PUT /vendor-offer/:id)
-        response = await api.put(`${API_ROUTES.BOOKINGS}/${bookingId}/vendor-offer`, offerData, {
+        response = await api.put(`${API_ROUTES.BOOKINGS}/${bookingId}/vendor-offer`, payload, {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -571,7 +601,7 @@ export function useBookingActions() {
         });
       } catch (err: any) {
         // Fallback to old endpoint
-        response = await api.put(`${API_ROUTES.BOOKINGS}/${bookingId}/offers/${offerId}`, offerData, {
+        response = await api.put(`${API_ROUTES.BOOKINGS}/${bookingId}/offers/${offerId}`, payload, {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${localStorage.getItem('token')}`,

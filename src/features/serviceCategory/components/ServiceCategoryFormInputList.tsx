@@ -11,9 +11,9 @@ import { useParams } from 'react-router-dom';
 
 
 const ServiceCategoryFormInputList: React.FC = () => {
-  const { categories = [], pagination, loading } = useServiceCategory();
+  const { formInputs = [], formInputsPagination, formInputsLoading } = useServiceCategory();
   const { id } = useParams();
-  const { getCategoryList, removeCategory,updateServiceCategoryStatus } = useServiceCategoryActions();
+  const { getServiceCategoryFormInputs, removeServiceCategoryFormInput, updateServiceCategoryFormInput } = useServiceCategoryActions();
 
   const [pathAddInput] = useState('/service-category/form-inputs/add/' + id);
   const [currentPage, setCurrentPage] = useState(1);
@@ -23,58 +23,49 @@ const ServiceCategoryFormInputList: React.FC = () => {
   const navigate = useNavigate();
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  type ServiceCategoryRow = { id: string; name: string; description?: string;isActive?: boolean; };
-  const [selectedUser, setSelectedUser] = useState<ServiceCategoryRow | null>(null);
+  const [selectedInput, setSelectedInput] = useState<FormInputRow | null>(null);
 
-  // Fetch users when page or search changes
+  // Fetch form inputs for the selected category when page or search changes
   useEffect(() => {
+    if (!id) return;
     const delayDebounce = setTimeout(() => {
-      getCategoryList(currentPage, rowsPerPage, searchQuery);
+      getServiceCategoryFormInputs(id as string, currentPage, rowsPerPage, searchQuery);
     }, 300); // debounce API call by 300ms
 
     return () => clearTimeout(delayDebounce);
-  }, [getCategoryList, currentPage, searchQuery, rowsPerPage]);
+  }, [id, getServiceCategoryFormInputs, currentPage, searchQuery, rowsPerPage]);
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
   };
 
-  const handleAction = (action: TableAction, row: ServiceCategoryRow) => {
+  const handleAction = (action: TableAction, row: any) => {
     if (action === 'edit') {
-      navigate(`/service-category/${row.id}`);
+      navigate(`/service-category/form-inputs/edit/${row.id}`);
     } else if (action === 'delete') {
-      setSelectedUser(row);
+      setSelectedInput(row as any);
       setShowDeleteModal(true);
-    }
-
-    else if (action === 'activate') {
-      updateServiceCategoryStatus(row.id, {isActive: true});
-      toast.success('Category activated successfully');
-      getCategoryList(currentPage, rowsPerPage, searchQuery);
-    }
-    else if (action === 'deactivate') {
-      updateServiceCategoryStatus(row.id, {isActive: false});
-      toast.success('Category deactivated successfully');
-      getCategoryList(currentPage, rowsPerPage, searchQuery);
     }
     else if (action === 'reset-password') {
       // Reset password functionality
     }
     else if (action === 'view') {
-      // View service category
-    }else if (action === 'add form inputs') {
-       navigate(`/service-category/form-inputs/add/${row.id}`);
+      // View form input
+    } else if (action === 'add form inputs') {
+      navigate(`/service-category/form-inputs/add/${row.id}`);
     }
   };
 
   const confirmDelete = async () => {
-    if (!selectedUser) return;
+    if (!selectedInput) return;
     try {
-      await removeCategory(selectedUser.id);
+      await removeServiceCategoryFormInput(selectedInput.id);
       setShowDeleteModal(false);
-      setSelectedUser(null);
-      toast.success('Category deleted successfully');
-      // No need to refresh the list as Redux actions already update the state
+      setSelectedInput(null);
+      toast.success('Form input deleted successfully');
+      if (id) {
+        getServiceCategoryFormInputs(id as string, currentPage, rowsPerPage, searchQuery);
+      }
     } catch (error) {
       // Error is already handled by Redux actions and displayed in UI
     }
@@ -82,54 +73,45 @@ const ServiceCategoryFormInputList: React.FC = () => {
 
   const cancelDelete = () => {
     setShowDeleteModal(false);
-    setSelectedUser(null);
+    setSelectedInput(null);
   };
 
 
 
-  const columns: TableColumn<ServiceCategoryRow>[] = [
-    { key: 'name', label: 'Name', width: 250, sortable: true, searchable: true },
-    { key: 'description', label: 'Description', width: 300 },
-    { 
-      key: 'isActive', 
-      label: 'Status', 
-      width: 100,
-      render: (value: any) => {
-        const isActive = Boolean(value);
-        return (
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-            isActive 
-              ? 'bg-green-100 text-green-800' 
-              : 'bg-red-100 text-red-800'
-          }`}>
-            {isActive ? 'Active' : 'Inactive'}
-          </span>
-        );
-      }
-    },
+  const columns: TableColumn<FormInputRow>[] = [
+    { key: 'label', label: 'Label', width: 250, sortable: true, searchable: true },
+    { key: 'type', label: 'Type', width: 150 },
+    { key: 'required', label: 'Required', width: 100, render: (value) => (value === true ? 'Yes' : value === false ? 'No' : '') },
+    { key: 'minrange', label: 'Min', width: 100 },
+    { key: 'maxrange', label: 'Max', width: 100 },
   ];
 
-  const sanitizedCategories: ServiceCategoryRow[] = (categories as any[])?.filter(Boolean).map((c: any) => ({
-    id: (c.id ?? c.key ?? `${c.name || 'category'}-${Math.random().toString(36).slice(2,8)}`) as string,
-    name: (c.name ?? '') as string,
-    description: (c.description ?? undefined) as string | undefined,
-    isActive: c.isActive, // Include isActive field from API data
+  // Map form inputs to rows for the table
+  type FormInputRow = { id: string; label: string; type: string; required?: boolean; minrange?: number; maxrange?: number; isActive?: boolean };
+  const sanitizedInputs: FormInputRow[] = (formInputs as any[])?.filter(Boolean).map((f: any) => ({
+    id: (f.id ?? f.key ?? `${f.label || 'input'}-${Math.random().toString(36).slice(2,8)}`) as string,
+    label: (f.label ?? '') as string,
+    type: (f.type ?? '') as string,
+    required: f.required as boolean | undefined,
+    minrange: f.minrange as number | undefined,
+    maxrange: f.maxrange as number | undefined,
+    isActive: f.isActive as boolean | undefined,
   })) ?? [];
 
   return (
     <Layout>
       <>
       <div className='max-w-3xl'>
-        <TableComponent<ServiceCategoryRow>
+        <TableComponent<FormInputRow>
           columns={columns}
-          data={sanitizedCategories}
+          data={sanitizedInputs as any[]}
           onRowAction={handleAction}
-          total={pagination?.total ?? 0}
+          total={formInputsPagination?.total ?? sanitizedInputs.length}
           currentPage={currentPage}
-          featureName="Service category dynamic form inputs"
+          featureName="Service category dynamic form"
           rowsPerPage={rowsPerPage}
           onPageChange={handlePageChange}
-          heading="Service category dynamic form inputs"
+          heading="Service category dynamic form"
           searchBar
           searchQuery={searchQuery}
           showResetPasswordOption={false}
@@ -140,22 +122,20 @@ const ServiceCategoryFormInputList: React.FC = () => {
           onRowsPerPageChange={(size) => {
             setRowsPerPage(size);
             setCurrentPage(1);
-            getCategoryList(1, size, searchQuery);
+            if (id) getServiceCategoryFormInputs(id as string, 1, size, searchQuery);
           }}
-          loading={loading}
-          showAddButton
+          loading={formInputsLoading}
+          showAddButton 
           addButtonRoute={pathAddInput}
           addButtonText='Add Form Input'
-          showLocationOption={false}
-          showCategoryInputsOption={true}
         />
-          {showDeleteModal && selectedUser && (
+          {showDeleteModal && selectedInput && (
          <ConfirmModal
             isOpen={showDeleteModal}
             onClose={cancelDelete}
             onConfirm={confirmDelete}
             title="Confirm Deletion"
-            message={`Are you sure you want to delete ${selectedUser.name} service category?`}
+            message={`Are you sure you want to delete the form input: ${selectedInput.label}?`}
             confirmLabel="Delete"
             cancelLabel="Cancel"
           />

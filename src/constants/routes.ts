@@ -19,6 +19,7 @@ API_ROUTES = {
     GET_ALL_CATEGORIES: "service-category",
     GET_ALL_FORMS: "forms",
     GET_FORM_BY_CATEGORY: "forms/category",
+    SERVICE_CATEGORY_FORM_INPUTS: "service-category-form-inputs",
     VENDORS: "vendors",
     CONTENT_POLICIES: "content-policies",
     BOOKINGS: "booking",

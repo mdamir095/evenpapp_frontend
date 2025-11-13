@@ -17,6 +17,19 @@ import {
   fetchCategoryByIdStart,
   fetchCategoryByIdSuccess,
   fetchCategoryByIdFailure,
+  // Form inputs actions
+  fetchFormInputsStart,
+  fetchFormInputsSuccess,
+  fetchFormInputsFailure,
+  addFormInputStart,
+  addFormInputSuccess,
+  addFormInputFailure,
+  updateFormInputStart,
+  updateFormInputSuccess,
+  updateFormInputFailure,
+  removeFormInputStart,
+  removeFormInputSuccess,
+  removeFormInputFailure,
 } from '../slices/ServiceCategorySlice';
 import { API_ROUTES } from '../../../constants/routes';
 import { updateServiceCategoryStatusFailure, updateServiceCategoryStatusSuccess } from '../slices/ServiceCategorySlice';
@@ -207,6 +220,121 @@ export function useServiceCategoryActions() {
     }
   }, []);
 
+  // Service Category Form Inputs: GET list by categoryId
+  const getServiceCategoryFormInputs = useCallback(
+    async (categoryId: string, page = 1, limit = 10, searchQuery = '') => {
+      dispatch(fetchFormInputsStart());
+      try {
+        const response = await api.get(API_ROUTES.SERVICE_CATEGORY_FORM_INPUTS, {
+          params: { categoryId, page, limit, search: searchQuery },
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+
+        const payload = response?.data;
+        const inner = payload?.data;
+
+        let items: any[] = [];
+        let pagination = { total: 0, page, limit, totalPages: 0 } as { total: number; page: number; limit: number; totalPages: number };
+
+        if (Array.isArray(inner)) {
+          // Shape: { status: 'OK', data: [ ... ] }
+          items = inner;
+          pagination = { total: inner.length, page, limit, totalPages: Math.ceil(inner.length / limit) };
+        } else if (inner && Array.isArray(inner.data)) {
+          // Shape: { data: { data: [ ... ], pagination } }
+          items = inner.data;
+          pagination = inner.pagination ?? pagination;
+        } else if (Array.isArray(payload)) {
+          // Shape: [ ... ]
+          items = payload;
+          pagination = { total: payload.length, page, limit, totalPages: Math.ceil(payload.length / limit) };
+        } else {
+          const maybe = (inner as any)?.items;
+          if (Array.isArray(maybe)) {
+            items = maybe;
+            pagination = (inner as any)?.pagination ?? pagination;
+          }
+        }
+
+        dispatch(fetchFormInputsSuccess({ items, pagination }));
+      } catch (err: any) {
+        const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch form inputs';
+        dispatch(fetchFormInputsFailure(errorMessage));
+      }
+    },
+    [dispatch]
+  );
+
+  // Service Category Form Inputs: CREATE
+  const addServiceCategoryFormInput = useCallback(
+    async (payload: { categoryId: string; label: string; type: string; required?: boolean; minrange?: number; maxrange?: number; }) => {
+      dispatch(addFormInputStart());
+      try {
+        const response = await api.post(API_ROUTES.SERVICE_CATEGORY_FORM_INPUTS, payload, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+        const created = response.data.data || response.data;
+        dispatch(addFormInputSuccess(created));
+        return created;
+      } catch (err: any) {
+        const errorMessage = err.response?.data?.message || err.message || 'Failed to add form input';
+        dispatch(addFormInputFailure(errorMessage));
+        throw err;
+      }
+    },
+    [dispatch]
+  );
+
+  // Service Category Form Inputs: UPDATE
+  const updateServiceCategoryFormInput = useCallback(
+    async (id: string, payload: { label?: string; type?: string; required?: boolean; minrange?: number; maxrange?: number; }) => {
+      dispatch(updateFormInputStart());
+      try {
+        const response = await api.patch(`${API_ROUTES.SERVICE_CATEGORY_FORM_INPUTS}/${id}`, payload, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+        const updated = response.data.data || response.data;
+        dispatch(updateFormInputSuccess(updated));
+        return updated;
+      } catch (err: any) {
+        const errorMessage = err.response?.data?.message || err.message || 'Failed to update form input';
+        dispatch(updateFormInputFailure(errorMessage));
+        throw err;
+      }
+    },
+    [dispatch]
+  );
+
+  // Service Category Form Inputs: DELETE
+  const removeServiceCategoryFormInput = useCallback(
+    async (id: string) => {
+      dispatch(removeFormInputStart());
+      try {
+        await api.delete(`${API_ROUTES.SERVICE_CATEGORY_FORM_INPUTS}/${id}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+        dispatch(removeFormInputSuccess(id));
+      } catch (err: any) {
+        const errorMessage = err.response?.data?.message || err.message || 'Failed to delete form input';
+        dispatch(removeFormInputFailure(errorMessage));
+        throw err;
+      }
+    },
+    [dispatch]
+  );
+
   return {
     getCategoryList,
     addCategory,
@@ -215,5 +343,11 @@ export function useServiceCategoryActions() {
     fetchCategoryById,
     updateServiceCategoryStatus,
     getFormsList,
+
+    // form inputs
+    getServiceCategoryFormInputs,
+    addServiceCategoryFormInput,
+    updateServiceCategoryFormInput,
+    removeServiceCategoryFormInput,
   };
 }

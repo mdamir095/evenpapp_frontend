@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { InputGroup } from '../../../components/molecules/InputGroup';
@@ -23,11 +23,15 @@ const formInputSchema = z.object({
 type FormInputSchemaType = z.infer<typeof formInputSchema>;
 
 const ServiceCategoryFormInputs: React.FC = () => {
-  const { id } = useParams();
+  const { id } = useParams(); // In add route, this is categoryId. In edit route, this is formInputId
+  const location = useLocation();
   const toast = useToast();
   const navigate = useNavigate();
 
-  const { addServiceCategoryFormInput } = useServiceCategoryActions();
+  const { addServiceCategoryFormInput, updateServiceCategoryFormInput, getServiceCategoryFormInputById } = useServiceCategoryActions();
+
+  const isEditMode = location.pathname.includes('/edit/');
+  const [currentCategoryId, setCurrentCategoryId] = useState<string | null>(null);
 
   const methods = useForm<FormInputSchemaType>({
     resolver: zodResolver(formInputSchema),
@@ -41,10 +45,50 @@ const ServiceCategoryFormInputs: React.FC = () => {
     },
   });
 
+  // Prefill in edit mode
+  useEffect(() => {
+    const fetchDetails = async () => {
+      if (!isEditMode || !id) return;
+      try {
+        const data: any = await getServiceCategoryFormInputById(id);
+        // Save categoryId for back navigation after update
+        if (data?.categoryId) setCurrentCategoryId(data.categoryId);
+        methods.reset({
+          label: data?.label ?? '',
+          type: data?.type ?? '',
+          required: data?.required ? 'Yes' : 'No',
+          minrange: typeof data?.minrange === 'number' ? String(data.minrange) : '',
+          maxrange: typeof data?.maxrange === 'number' ? String(data.maxrange) : '',
+        });
+      } catch (err) {
+        // Optionally show toast
+      }
+    };
+    fetchDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditMode, id]);
+
   const { formState: { errors, isDirty } } = methods;
 
   const onSubmit = async (data: FormInputSchemaType) => {
     try {
+      if (isEditMode && id) {
+        const payload = {
+          label: data.label.trim(),
+          type: data.type.trim(),
+          required: data.required === 'Yes',
+          minrange: data.minrange ? Number(data.minrange) : undefined,
+          maxrange: data.maxrange ? Number(data.maxrange) : undefined,
+        };
+        await updateServiceCategoryFormInput(id, payload);
+        toast.success('Form input updated successfully');
+        const targetCategoryId = currentCategoryId || '';
+        if (targetCategoryId) {
+          navigate(`/service-category/form-inputs/${targetCategoryId}`);
+        }
+        return;
+      }
+
       const payload = {
         categoryId: id as string,
         label: data.label.trim(),
@@ -73,8 +117,14 @@ const ServiceCategoryFormInputs: React.FC = () => {
   return (
     <>
       <Layout>
-        <h2 className="text-xl font-semibold mb-2">Add Form Input</h2>
-        <Breadcrumbs />
+        <h2 className="text-xl font-semibold mb-2">{isEditMode ? 'Edit Form Input' : 'Add Form Input'}</h2>
+        <Breadcrumbs onItemClick={(item) => {
+          if (item.label === 'Form Inputs' && currentCategoryId) {
+            navigate(`/service-category/form-inputs/${currentCategoryId}`);
+            return;
+          }
+          navigate(item.path);
+        }} />
         <div className="text-gray-800 shadow-sm mt-5 max-w-3xl border border-neutral-100 bg-white rounded-xl p-6">
           <div className="grid grid-cols-1">
             <FormProvider {...methods}>
@@ -147,7 +197,7 @@ const ServiceCategoryFormInputs: React.FC = () => {
 
                 <div className="flex gap-4 pt-6">
                   <Button type="submit" variant="primary" disabled={!canSubmit}>
-                    Create Form Input
+                    {isEditMode ? 'Update Form Input' : 'Create Form Input'}
                   </Button>
                 </div>
               </Form>

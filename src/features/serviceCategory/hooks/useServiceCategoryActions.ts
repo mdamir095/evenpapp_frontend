@@ -335,6 +335,16 @@ export function useServiceCategoryActions() {
     [dispatch]
   );
 
+  const getServiceCategoryFormInputById = useCallback(async (id: string) => {
+    const response = await api.get(`${API_ROUTES.SERVICE_CATEGORY_FORM_INPUTS}/${id}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+    });
+    return response.data?.data || response.data;
+  }, []);
+
   return {
     getCategoryList,
     addCategory,
@@ -344,10 +354,10 @@ export function useServiceCategoryActions() {
     updateServiceCategoryStatus,
     getFormsList,
 
-    // form inputs
     getServiceCategoryFormInputs,
     addServiceCategoryFormInput,
     updateServiceCategoryFormInput,
     removeServiceCategoryFormInput,
+    getServiceCategoryFormInputById,
   };
 }

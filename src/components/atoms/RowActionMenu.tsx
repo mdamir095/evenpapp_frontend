@@ -185,7 +185,7 @@ export const RowActionMenu = ({
                 className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-gray-700 cursor-pointer"
                 role="menuitem"
               >
-                <PlusIcon  className="size-4" /> Add form inputs
+                <PlusIcon  className="size-4" /> Dynamic Form
               </li>
             )}
             {canActivate && !isActive && (

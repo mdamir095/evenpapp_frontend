@@ -79,11 +79,11 @@ const ServiceCategoryFormInputList: React.FC = () => {
 
 
   const columns: TableColumn<FormInputRow>[] = [
-    { key: 'label', label: 'Label', width: 250, sortable: true, searchable: true },
-    { key: 'type', label: 'Type', width: 150 },
-    { key: 'required', label: 'Required', width: 100, render: (value) => (value === true ? 'Yes' : value === false ? 'No' : '') },
-    { key: 'minrange', label: 'Min', width: 100 },
-    { key: 'maxrange', label: 'Max', width: 100 },
+    { key: 'label', label: 'Label', width: 250, sortable: true, searchable: true, render: (value) => (value ? String(value) : '-') },
+    { key: 'type', label: 'Type', width: 150, render: (value) => (value ? String(value) : '-') },
+    { key: 'required', label: 'Required', width: 100, render: (value) => (value === true ? 'Yes' : value === false ? 'No' : '-') },
+    { key: 'minrange', label: 'Min', width: 100, render: (value) => (value === 0 || value ? String(value) : '-') },
+    { key: 'maxrange', label: 'Max', width: 100, render: (value) => (value === 0 || value ? String(value) : '-') },
   ];
 
   // Map form inputs to rows for the table

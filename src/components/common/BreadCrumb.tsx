@@ -46,8 +46,8 @@ const Breadcrumbs: React.FC<BreadcrumbsProps & { separator?: React.ReactNode }> 
 
   const segments = location.pathname.split("/").filter(Boolean);
 
-  // Filter out 'edit' and IDs but keep track of them for determining edit mode
-  const isEditMode = segments.includes('edit') || segments.some(seg => /^[0-9a-fA-F]{24}$/.test(seg));
+  // Treat as edit mode only when the URL explicitly includes 'edit'
+  const isEditMode = segments.includes('edit');
   
   const filteredSegments = segments.filter((segment) => {
     // Remove 'edit' and MongoDB ObjectIDs (24-character hex strings)
@@ -56,6 +56,9 @@ const Breadcrumbs: React.FC<BreadcrumbsProps & { separator?: React.ReactNode }> 
     }
     return true;
   });
+
+  // Extract a 24-hex id from the original segments (e.g., categoryId)
+  const categoryIdFromPath = segments.find(seg => /^[0-9a-fA-F]{24}$/.test(seg));
 
   let items: BreadcrumbItem[] = filteredSegments.map((segment, index) => {
     let label = combinedRouteMap[segment] || segment.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -67,10 +70,15 @@ const Breadcrumbs: React.FC<BreadcrumbsProps & { separator?: React.ReactNode }> 
       label = `Add ${moduleName}`;
     }
     
-    return {
-      label,
-      path: "/" + filteredSegments.slice(0, index + 1).join("/"),
-    };
+    // Build default path
+    let path = "/" + filteredSegments.slice(0, index + 1).join("/");
+
+    // Special case: ensure 'Form Inputs' breadcrumb links to the category-specific listing
+    if (segment === 'form-inputs' && categoryIdFromPath) {
+      path = `${path}/${categoryIdFromPath}`;
+    }
+
+    return { label, path };
   });
 
   // For edit mode, add "Edit [Module Name]" as the last breadcrumb

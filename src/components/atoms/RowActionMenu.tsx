@@ -176,6 +176,18 @@ export const RowActionMenu = ({
                 <ListRestart  className="size-4" /> Reset Password
               </li>
             )}
+            {showCategoryInputsOption && (
+              <li
+                onClick={() => {
+                  setOpen(false);
+                  onFormInputs?.();
+                }}
+                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-gray-700 cursor-pointer"
+                role="menuitem"
+              >
+                <PlusIcon  className="size-4" /> Add form inputs
+              </li>
+            )}
             {canActivate && !isActive && (
               <li
                 onClick={() => {
@@ -200,6 +212,7 @@ export const RowActionMenu = ({
                 <PowerOff className="size-4" /> Deactivate
               </li>
             )}
+        
             {canBlock && !isBlocked && (
               <li
                 onClick={() => {
@@ -236,18 +249,7 @@ export const RowActionMenu = ({
                 <MapPinned  className="size-4" /> Add Location
               </li>
             )}
-            {showCategoryInputsOption && (
-              <li
-                onClick={() => {
-                  setOpen(false);
-                  onFormInputs?.();
-                }}
-                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-gray-700 cursor-pointer"
-                role="menuitem"
-              >
-                <PlusIcon  className="size-4" /> Add form inputs
-              </li>
-            )}
+       
             {showQuotationOption && (
               <li
                 // onClick={() => {

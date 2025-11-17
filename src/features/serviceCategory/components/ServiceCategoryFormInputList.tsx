@@ -80,22 +80,41 @@ const ServiceCategoryFormInputList: React.FC = () => {
 
   const columns: TableColumn<FormInputRow>[] = [
     { key: 'label', label: 'Label', width: 250, sortable: true, searchable: true, render: (value) => (value ? String(value) : '-') },
-    { key: 'type', label: 'Type', width: 150, render: (value) => (value ? String(value) : '-') },
-    { key: 'required', label: 'Required', width: 100, render: (value) => (value === true ? 'Yes' : value === false ? 'No' : '-') },
+    
     { key: 'minrange', label: 'Min', width: 100, render: (value) => (value === 0 || value ? String(value) : '-') },
     { key: 'maxrange', label: 'Max', width: 100, render: (value) => (value === 0 || value ? String(value) : '-') },
+    { 
+      key: 'active', 
+      label: 'Status', 
+      width: 140, 
+      render: (value) => {
+        if (value === true) {
+          return (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+              Active
+            </span>
+          );
+        }
+        if (value === false) {
+          return (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">
+              Inactive
+            </span>
+          );
+        }
+        return '-';
+      }
+    }
   ];
 
   // Map form inputs to rows for the table
-  type FormInputRow = { id: string; label: string; type: string; required?: boolean; minrange?: number; maxrange?: number; isActive?: boolean };
+  type FormInputRow = { id: string; label: string; active?: boolean; minrange?: number; maxrange?: number };
   const sanitizedInputs: FormInputRow[] = (formInputs as any[])?.filter(Boolean).map((f: any) => ({
     id: (f.id ?? f.key ?? `${f.label || 'input'}-${Math.random().toString(36).slice(2,8)}`) as string,
     label: (f.label ?? '') as string,
-    type: (f.type ?? '') as string,
-    required: f.required as boolean | undefined,
+    active: (typeof f.active === 'boolean' ? f.active : (typeof f.isActive === 'boolean' ? f.isActive : undefined)) as boolean | undefined,
     minrange: f.minrange as number | undefined,
     maxrange: f.maxrange as number | undefined,
-    isActive: f.isActive as boolean | undefined,
   })) ?? [];
 
   return (

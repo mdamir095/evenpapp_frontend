@@ -270,7 +270,7 @@ export function useServiceCategoryActions() {
 
   // Service Category Form Inputs: CREATE
   const addServiceCategoryFormInput = useCallback(
-    async (payload: { categoryId: string; label: string; type: string; required?: boolean; minrange?: number; maxrange?: number; }) => {
+    async (payload: { categoryId: string; label: string; active : boolean; required?: boolean; minrange?: number; maxrange?: number; }) => {
       dispatch(addFormInputStart());
       try {
         const response = await api.post(API_ROUTES.SERVICE_CATEGORY_FORM_INPUTS, payload, {
@@ -293,7 +293,7 @@ export function useServiceCategoryActions() {
 
   // Service Category Form Inputs: UPDATE
   const updateServiceCategoryFormInput = useCallback(
-    async (id: string, payload: { label?: string; type?: string; required?: boolean; minrange?: number; maxrange?: number; }) => {
+    async (id: string, payload: { label?: string; active ?: boolean; required?: boolean; minrange?: number; maxrange?: number; }) => {
       dispatch(updateFormInputStart());
       try {
         const response = await api.patch(`${API_ROUTES.SERVICE_CATEGORY_FORM_INPUTS}/${id}`, payload, {

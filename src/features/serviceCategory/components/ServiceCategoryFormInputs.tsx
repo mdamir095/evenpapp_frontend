@@ -14,8 +14,7 @@ import Breadcrumbs from '../../../components/common/BreadCrumb';
 
 const formInputSchema = z.object({
   label: z.string().min(1, 'Label is required'),
-  type: z.string().min(1, 'Type is required'),
-  required: z.enum(["Yes", "No"] as const, { message: "Selection is required" }),
+  active: z.enum(['Active', 'Inactive']).default('Active'),
   maxrange: z.string().optional(),
   minrange: z.string().optional(),
 });
@@ -38,8 +37,7 @@ const ServiceCategoryFormInputs: React.FC = () => {
     mode: 'all',
     defaultValues: {
       label: '',
-      type: '',
-      required: 'Yes',
+      active: 'Active',
       minrange: '',
       maxrange: '',
     },
@@ -55,8 +53,7 @@ const ServiceCategoryFormInputs: React.FC = () => {
         if (data?.categoryId) setCurrentCategoryId(data.categoryId);
         methods.reset({
           label: data?.label ?? '',
-          type: data?.type ?? '',
-          required: data?.required ? 'Yes' : 'No',
+          active: data?.active === false ? 'Inactive' : 'Active',
           minrange: typeof data?.minrange === 'number' ? String(data.minrange) : '',
           maxrange: typeof data?.maxrange === 'number' ? String(data.maxrange) : '',
         });
@@ -75,8 +72,7 @@ const ServiceCategoryFormInputs: React.FC = () => {
       if (isEditMode && id) {
         const payload = {
           label: data.label.trim(),
-          type: data.type.trim(),
-          required: data.required === 'Yes',
+          active: data.active === 'Active',
           minrange: data.minrange ? Number(data.minrange) : undefined,
           maxrange: data.maxrange ? Number(data.maxrange) : undefined,
         };
@@ -92,8 +88,7 @@ const ServiceCategoryFormInputs: React.FC = () => {
       const payload = {
         categoryId: id as string,
         label: data.label.trim(),
-        type: data.type.trim(),
-        required: data.required === 'Yes',
+        active: data.active === 'Active',
         minrange: data.minrange ? Number(data.minrange) : undefined,
         maxrange: data.maxrange ? Number(data.maxrange) : undefined,
       };
@@ -107,11 +102,9 @@ const ServiceCategoryFormInputs: React.FC = () => {
   };
 
   const labelValue = methods.watch('label');
-  const typeValue = methods.watch('type');
-  const requiredValue = methods.watch('required');
   const canSubmit = useMemo(
-    () => isDirty && !!labelValue?.trim() && !!typeValue?.trim() && !!requiredValue,
-    [isDirty, labelValue, typeValue, requiredValue]
+    () => isDirty && !!labelValue?.trim(),
+    [isDirty, labelValue]
   );
 
   return (
@@ -143,40 +136,29 @@ const ServiceCategoryFormInputs: React.FC = () => {
                     autoComplete="off"
                     error={errors?.label?.message}
                   />
-                  <InputGroup
-                    label="Type"
-                    name="type"
-                    id="type"
-                    placeholder="Enter type (e.g. string)"
-                    autoComplete="off"
-                    error={errors?.type?.message}
-                  />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-row-1 gap-4 mt-2">
                   <Controller
-                    name="required"
+                    name="active"
                     control={methods.control}
                     render={({ field, fieldState }) => (
                       <SelectGroup
-                        label="Required"
+                        label="Status"
                         options={[
-                          { label: 'Yes', value: 'Yes' },
-                          { label: 'No', value: 'No' },
+                          { label: 'Active', value: 'Active' },
+                          { label: 'Inactive', value: 'Inactive' },
                         ]}
                         value={field.value ? [{ label: field.value, value: field.value }] : []}
                         onChange={(selected) => {
                           const value = Array.isArray(selected) ? selected[0]?.value : '';
-                          field.onChange(value || '');
+                          field.onChange(value || 'Active');
                         }}
                         isMulti={false}
                         error={fieldState.error?.message}
                       />
                     )}
                   />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-row-1 gap-4 mt-2">
                   <InputGroup
                     label="MinRange"
                     name="minrange"

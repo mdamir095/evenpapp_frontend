@@ -221,69 +221,67 @@ const CategoryForm: React.FC<ServiceCategoryFormProps> = ({ editingServiceCatego
                   />
                   <div className="border-b border-gray-200 my-3" />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900">Booking Request Form inputs</h3>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => setBookingFormModalOpen(true)}
-                      disabled={!id}
-                    >
-                      + Add booking request form input
-                    </Button>
-                  </div>
-                  {!id && (
-                    <p className="text-sm text-gray-500">Save the category first to add booking request form inputs.</p>
-                  )}
-                  {formInputsLoading ? (
-                    <p className="text-sm text-gray-500">Loading inputs...</p>
-                  ) : (Array.isArray(formInputs) && formInputs.length > 0 ? (
-                    <div className="divide-y border rounded-md">
-                      {(formInputs as any[]).filter(Boolean).map((f: any) => {
-                        const idVal = (f.id ?? f._id ?? f.key ?? `${f.label || 'input'}-${Math.random().toString(36).slice(2,8)}`) as string;
-                        const active = (typeof f.active === 'boolean' ? f.active : (typeof f.isActive === 'boolean' ? f.isActive : undefined)) as boolean | undefined;
-                        return (
-                          <div key={idVal} className="flex items-center justify-between p-3">
-                            <div className="flex flex-col">
-                              <span className="font-medium text-gray-900">{f.label || '-'}</span>
-                              <span className="text-xs text-gray-500">Min: {f.minrange ?? '-'} • Max: {f.maxrange ?? '-'}</span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              {active === true && (
-                                <span className="px-2 py-0.5 rounded-full text-xs bg-green-50 text-green-700 border border-green-200">Active</span>
-                              )}
-                              {active === false && (
-                                <span className="px-2 py-0.5 rounded-full text-xs bg-red-50 text-red-700 border border-red-200">Inactive</span>
-                              )}
-                              <Button
-                                type="button"
-                                variant="secondary"
-                                size="sm"
-                                onClick={() => navigate(`/service-category/form-inputs/edit/${idVal}`)}
-                              >
-                                Edit
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="danger"
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedInputForDelete({ id: idVal, label: f.label });
-                                  setShowDeleteInputModal(true);
-                                }}
-                              >
-                                Delete
-                              </Button>
-                            </div>
-                          </div>
-                        );
-                      })}
+                {isEditMode && id && (
+                  <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold text-gray-900">Booking Request Form inputs</h3>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => setBookingFormModalOpen(true)}
+                      >
+                        + Add booking request form input
+                      </Button>
                     </div>
-                  ) : (
-                    <p className="text-sm text-gray-500">No inputs added yet.</p>
-                  ))}
-                </div>
+                    {formInputsLoading ? (
+                      <p className="text-sm text-gray-500">Loading inputs...</p>
+                    ) : (Array.isArray(formInputs) && formInputs.length > 0 ? (
+                      <div className="divide-y border rounded-md">
+                        {(formInputs as any[]).filter(Boolean).map((f: any) => {
+                          const idVal = (f.id ?? f._id ?? f.key ?? `${f.label || 'input'}-${Math.random().toString(36).slice(2,8)}`) as string;
+                          const active = (typeof f.active === 'boolean' ? f.active : (typeof f.isActive === 'boolean' ? f.isActive : undefined)) as boolean | undefined;
+                          return (
+                            <div key={idVal} className="flex items-center justify-between p-3">
+                              <div className="flex flex-col">
+                                <span className="font-medium text-gray-900">{f.label || '-'}</span>
+                                <span className="text-xs text-gray-500">Min: {f.minrange ?? '-'} • Max: {f.maxrange ?? '-'}</span>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                {active === true && (
+                                  <span className="px-2 py-0.5 rounded-full text-xs bg-green-50 text-green-700 border border-green-200">Active</span>
+                                )}
+                                {active === false && (
+                                  <span className="px-2 py-0.5 rounded-full text-xs bg-red-50 text-red-700 border border-red-200">Inactive</span>
+                                )}
+                                <Button
+                                  type="button"
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={() => navigate(`/service-category/form-inputs/edit/${idVal}`)}
+                                >
+                                  Edit
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="danger"
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedInputForDelete({ id: idVal, label: f.label });
+                                    setShowDeleteInputModal(true);
+                                  }}
+                                >
+                                  Delete
+                                </Button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">No inputs added yet.</p>
+                    ))}
+                  </div>
+                )}
 
                 <div className="flex gap-4 pt-6">
                   <Button 
@@ -301,27 +299,29 @@ const CategoryForm: React.FC<ServiceCategoryFormProps> = ({ editingServiceCatego
         </div>
       </Layout>
 
-      <Modal
-        isOpen={isBookingFormModalOpen}
-        onClose={() => setBookingFormModalOpen(false)}
-        size="md"
-        title="Add Booking Request Form Input"
-      >
-        <BookingRequestFormModalBody
-          categoryId={id || ''}
-          labelOptions={labelOptions}
-          onCancel={() => setBookingFormModalOpen(false)}
-          onCreated={async () => {
-            setBookingFormModalOpen(false);
-            try {
-              if (id) {
-                const { getServiceCategoryFormInputs } = useServiceCategoryActions();
-                await getServiceCategoryFormInputs(id as string, 1, 50, '');
-              }
-            } catch (e) {}
-          }}
-        />
-      </Modal>
+      {isEditMode && id && (
+        <Modal
+          isOpen={isBookingFormModalOpen}
+          onClose={() => setBookingFormModalOpen(false)}
+          size="md"
+          title="Add Booking Request Form Input"
+        >
+          <BookingRequestFormModalBody
+            categoryId={id || ''}
+            labelOptions={labelOptions}
+            onCancel={() => setBookingFormModalOpen(false)}
+            onCreated={async () => {
+              setBookingFormModalOpen(false);
+              try {
+                if (id) {
+                  const { getServiceCategoryFormInputs } = useServiceCategoryActions();
+                  await getServiceCategoryFormInputs(id as string, 1, 50, '');
+                }
+              } catch (e) {}
+            }}
+          />
+        </Modal>
+      )}
       {showDeleteInputModal && selectedInputForDelete && (
         <ConfirmModal
           isOpen={showDeleteInputModal}

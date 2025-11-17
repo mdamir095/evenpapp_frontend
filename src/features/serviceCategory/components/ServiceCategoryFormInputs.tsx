@@ -102,7 +102,7 @@ const ServiceCategoryFormInputs: React.FC = () => {
         toast.success('Form input updated successfully');
         const targetCategoryId = currentCategoryId || '';
         if (targetCategoryId) {
-          navigate(`/service-category/form-inputs/${targetCategoryId}`);
+          navigate(`/service-category/${targetCategoryId}`);
         }
         return;
       }

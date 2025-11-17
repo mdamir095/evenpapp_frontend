@@ -143,7 +143,7 @@ const ServiceCategoryList: React.FC = () => {
           addButtonRoute="/service-category/new"
           addButtonText='Add Category'
           showLocationOption={false}
-          showCategoryInputsOption={true}
+          showCategoryInputsOption={false}
         />
           {showDeleteModal && selectedUser && (
          <ConfirmModal

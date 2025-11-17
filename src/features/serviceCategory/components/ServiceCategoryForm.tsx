@@ -223,14 +223,14 @@ const CategoryForm: React.FC<ServiceCategoryFormProps> = ({ editingServiceCatego
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900">Booking Request Form</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">Booking Request Form inputs</h3>
                     <Button
                       type="button"
                       variant="secondary"
                       onClick={() => setBookingFormModalOpen(true)}
                       disabled={!id}
                     >
-                      + Add booking request form
+                      + Add booking request form input
                     </Button>
                   </div>
                   {!id && (

@@ -108,7 +108,7 @@ const AppRoutes = () => {
         <Route path={ROUTING.UPDATE_CATEGORY} element={<ProtectedRoute requiredFeature="service_category" requiredPermission="write"><ServiceCategoryForm /></ProtectedRoute>} />
         <Route path={ROUTING.ADD_CATEGORY_FORM_INPUTS} element={<ProtectedRoute requiredFeature="service_category" requiredPermission="write"><ServiceCategoryFormInputs /></ProtectedRoute>} />
         <Route path={ROUTING.EDIT_CATEGORY_FORM_INPUTS} element={<ProtectedRoute requiredFeature="service_category" requiredPermission="write"><ServiceCategoryFormInputs /></ProtectedRoute>} />
-        <Route path={ROUTING.CATEGORY_FORM_INPUTS} element={<ProtectedRoute requiredFeature="service_category" requiredPermission="read"><ServiceCategoryFormInputList /></ProtectedRoute>} />
+        {/* <Route path={ROUTING.CATEGORY_FORM_INPUTS} element={<ProtectedRoute requiredFeature="service_category" requiredPermission="read"><ServiceCategoryFormInputList /></ProtectedRoute>} /> */}
 
         {/* Vendor Management - Protected by Vendor Management feature permission */}
         <Route path={ROUTING.VENDOR_MANAGEMENT} element={<ProtectedRoute requiredFeature="vendor_management" requiredPermission="read"><VendorList /></ProtectedRoute>} />

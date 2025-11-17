@@ -27,7 +27,7 @@ const ServiceCategoryFormInputs: React.FC = () => {
   const toast = useToast();
   const navigate = useNavigate();
 
-  const { addServiceCategoryFormInput, updateServiceCategoryFormInput, getServiceCategoryFormInputById } = useServiceCategoryActions();
+  const { addServiceCategoryFormInput, updateServiceCategoryFormInput, getServiceCategoryFormInputById, getFormInputLabels } = useServiceCategoryActions();
 
   const isEditMode = location.pathname.includes('/edit/');
   const [currentCategoryId, setCurrentCategoryId] = useState<string | null>(null);
@@ -42,6 +42,28 @@ const ServiceCategoryFormInputs: React.FC = () => {
       maxrange: '',
     },
   });
+
+  const [labelOptions, setLabelOptions] = useState<string[]>([]);
+  const [labelsLoading, setLabelsLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadLabels = async () => {
+      setLabelsLoading(true);
+      try {
+        const list = await getFormInputLabels();
+        if (isMounted && Array.isArray(list)) {
+          setLabelOptions(list);
+        }
+      } finally {
+        if (isMounted) setLabelsLoading(false);
+      }
+    };
+    loadLabels();
+    return () => {
+      isMounted = false;
+    };
+  }, [getFormInputLabels]);
 
   // Prefill in edit mode
   useEffect(() => {
@@ -128,13 +150,25 @@ const ServiceCategoryFormInputs: React.FC = () => {
                 className='bg-white text-gray-800'
               >
                 <div className="grid grid-cols-1 md:grid-row-1 gap-4">
-                  <InputGroup
-                    label="Label"
+                  <Controller
                     name="label"
-                    id="label"
-                    placeholder="Enter label"
-                    autoComplete="off"
-                    error={errors?.label?.message}
+                    control={methods.control}
+                    render={({ field, fieldState }) => (
+                      <SelectGroup
+                        label="Label"
+                        options={[
+                          { label: 'Select a label', value: '' },
+                          ...labelOptions.map(l => ({ label: String(l), value: String(l) }))
+                        ]}
+                        value={field.value ? [{ label: field.value, value: field.value }] : []}
+                        onChange={(selected) => {
+                          const value = Array.isArray(selected) ? selected[0]?.value : '';
+                          field.onChange(value || '');
+                        }}
+                        isMulti={false}
+                        error={fieldState.error?.message}
+                      />
+                    )}
                   />
                 </div>
 

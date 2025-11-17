@@ -220,6 +220,22 @@ export function useServiceCategoryActions() {
     }
   }, []);
 
+  const getFormInputLabels = useCallback(async (): Promise<string[]> => {
+    try {
+      const response = await api.get(`${API_ROUTES.SERVICE_CATEGORY_FORM_INPUTS}/label`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      const payload = response?.data;
+      const list = Array.isArray(payload?.data) ? payload.data : payload;
+      return Array.isArray(list) ? (list as string[]) : [];
+    } catch (err) {
+      return [];
+    }
+  }, []);
+
   // Service Category Form Inputs: GET list by categoryId
   const getServiceCategoryFormInputs = useCallback(
     async (categoryId: string, page = 1, limit = 10, searchQuery = '') => {
@@ -353,6 +369,7 @@ export function useServiceCategoryActions() {
     fetchCategoryById,
     updateServiceCategoryStatus,
     getFormsList,
+    getFormInputLabels,
 
     getServiceCategoryFormInputs,
     addServiceCategoryFormInput,

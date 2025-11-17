@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { resetPasswordSchema, type ResetPasswordSchemaType  } from '../../schemas/login.schema';
 import { Form } from '../../../../components/common/Form';
 import { InputGroup } from '../../../../components/molecules/InputGroup';
@@ -18,6 +18,7 @@ const ResetPassword: React.FC = () => {
     const navigate = useNavigate();
     const token = searchParams.get('token');
     const email = searchParams.get('email');
+    const [resetSuccess, setResetSuccess] = useState(false);
 
     // Check if token exists
     useEffect(() => {
@@ -27,7 +28,7 @@ const ResetPassword: React.FC = () => {
         }
     }, [token, navigate]);
 
-    // Navigate to login after successful password reset
+    // Navigate to login after successful password reset (with auto-login)
     useEffect(() => {
         if (isAuthenticated && !loading && !error) {
             toast.success('Password reset successfully! Redirecting to login...');
@@ -37,18 +38,38 @@ const ResetPassword: React.FC = () => {
         }
     }, [isAuthenticated, loading, error, navigate]);
 
+    // Navigate to login after successful password reset (without auto-login)
+    useEffect(() => {
+        if (resetSuccess && !loading && !isAuthenticated) {
+            const timer = setTimeout(() => {
+                navigate('/login');
+            }, 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [resetSuccess, loading, isAuthenticated, navigate]);
+
     const onSubmit = async (data: ResetFormValues) => {
         if (!token) {
             toast.error('Invalid or missing reset token');
             return;
         }
 
+        setResetSuccess(false);
         try {
-            await resetPassword(data.newPassword, token);
-            // Success handling is done in useEffect above
+            const result = await resetPassword(data.newPassword, token);
+            
+            // Check if password reset was successful
+            if (result?.success) {
+                setResetSuccess(true);
+                toast.success(result.message || 'Password reset successfully! Please log in with your new password.');
+            }
+            // If result is undefined but no error was thrown, the API call succeeded
+            // The error state will be checked in the useEffect
         } catch (err: any) {
             // Error is already handled by the Redux action and will be shown via error state
             console.error('Password reset error:', err);
+            setResetSuccess(false);
+            // Error toast will be shown via FormError component
         }
     };
   

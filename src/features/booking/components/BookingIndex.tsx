@@ -58,7 +58,7 @@ interface QuotationData {
   totalAmount: number;
 }
 
-type TabType = 'all' | 'cancelled' | 'pending' | 'rejected';
+type TabType = 'all' | 'confirmed' | 'pending' | 'rejected';
 
 interface Tab {
   id: TabType;
@@ -260,10 +260,10 @@ export const BookingIndex: React.FC = () => {
     
     // Filter by status tab
     switch (activeTab) {
-      case 'cancelled':
+      case 'confirmed':
         filtered = bookings.filter(b => {
           const status = getStatus(b);
-          return status === 'cancelled' || status === 'CANCELLED';
+          return status === 'confirmed' || status === 'CONFIRMED';
         });
         break;
       case 'pending':
@@ -272,7 +272,7 @@ export const BookingIndex: React.FC = () => {
       case 'rejected':
         filtered = bookings.filter(b => {
           const status = getStatus(b);
-          return status === 'cancelled';
+          return status === 'rejected' || status === 'REJECTED';
         });
         break;
       case 'all':
@@ -312,20 +312,20 @@ export const BookingIndex: React.FC = () => {
 
   // Calculate counts for each tab
   const allCount = bookings.length;
-  const cancelledCount = bookings.filter(b => {
+  const confirmedCount = bookings.filter(b => {
     const status = getBookingStatus(b);
-    return status === 'cancelled' || status === 'CANCELLED';
+    return status === 'confirmed' || status === 'CONFIRMED';
   }).length;
   const pendingCount = bookings.filter(b => getBookingStatus(b) === 'pending').length;
   const rejectedCount = bookings.filter(b => {
     const status = getBookingStatus(b);
-    return status === 'cancelled';
+    return status === 'rejected' || status === 'REJECTED';
   }).length;
 
   // Tab configuration
   const tabs: Tab[] = [
     { id: 'all', label: 'All Bookings', count: allCount },
-    { id: 'cancelled', label: 'Cancelled', count: cancelledCount },
+    { id: 'confirmed', label: 'Confirmed', count: confirmedCount },
     { id: 'pending', label: 'Pending', count: pendingCount },
     { id: 'rejected', label: 'Rejected', count: rejectedCount },
   ];
@@ -336,14 +336,14 @@ export const BookingIndex: React.FC = () => {
     // Define filters based on selected tab
     let filters: any = {};
     switch (tabId) {
-      case 'cancelled':
-        filters = { status: 'CANCELLED' };
+      case 'confirmed':
+        filters = { status: 'CONFIRMED' };
         break;
       case 'pending':
         filters = { status: 'pending' };
         break;
       case 'rejected':
-        filters = { status: 'CANCELLED' };
+        filters = { status: 'REJECTED' };
         break;
       case 'all':
       default:
@@ -497,6 +497,7 @@ export const BookingIndex: React.FC = () => {
       case 'confirmed':
         return 'bg-blue-100 text-blue-600';
       case 'rejected':
+        return 'bg-red-100 text-red-600';
       case 'cancelled':
         return 'bg-gray-100 text-gray-600';
       default:
@@ -549,8 +550,8 @@ export const BookingIndex: React.FC = () => {
                     >
                       <span
                         className={`w-2 h-2 rounded-full ${
-                          tab.id === 'cancelled'
-                            ? 'bg-gray-600'
+                          tab.id === 'confirmed'
+                            ? 'bg-blue-600'
                             : tab.id === 'pending'
                             ? 'bg-yellow-600'
                             : tab.id === 'rejected'

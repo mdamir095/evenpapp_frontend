@@ -96,25 +96,41 @@ export function useAuthActions() {
         }
       });
       
-      // If reset password returns user data, use it; otherwise get from localStorage
-      const userData = response.data.data?.user || JSON.parse(localStorage.getItem('user') || '{}');
-      const accessToken = response.data.data?.accessToken || response.data.data?.token || localStorage.getItem('token') || '';
+      // Check if the response indicates success
+      const isSuccess = response.data?.status === 'OK' || 
+                       response.data?.data?.message?.toLowerCase().includes('success') ||
+                       response.status === 200;
       
-      if (accessToken) {
-        localStorage.setItem('token', accessToken);
-        if (userData && Object.keys(userData).length > 0) {
+      if (isSuccess) {
+        // Password reset successful - check if token/user data is returned
+        const userData = response.data.data?.user || null;
+        const accessToken = response.data.data?.accessToken || response.data.data?.token || null;
+        
+        // If token is provided, log the user in automatically
+        if (accessToken && userData) {
+          localStorage.setItem('token', accessToken);
           localStorage.setItem('user', JSON.stringify(userData));
+          dispatch(loginSuccess({ token: accessToken, user: userData }));
+          return { success: true, message: response.data?.data?.message || 'Password reset successful', autoLogin: true };
+        } else {
+          // Password reset successful but no auto-login - clear loading state without error
+          // Reset loading state by dispatching loginFailure with empty string (which clears error)
+          dispatch(loginFailure('')); 
+          // Return success indicator
+          return { success: true, message: response.data?.data?.message || 'Password reset successful', autoLogin: false };
         }
-        dispatch(loginSuccess({ token: accessToken, user: userData }));
       } else {
-        dispatch(loginFailure('No token received'));
+        dispatch(loginFailure('Password reset failed. Please try again.'));
+        throw new Error('Password reset failed. Please try again.');
       }
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message ||
+        err.response?.data?.data?.message ||
         err.message ||
-        'Invalid credentials';
+        'Failed to reset password';
       dispatch(loginFailure(errorMessage));
+      throw new Error(errorMessage);
     }
   }, [dispatch]);
 

@@ -69,11 +69,9 @@ const CategoryForm: React.FC<ServiceCategoryFormProps> = ({ editingServiceCatego
       const formsList = await getFormsList();
       console.log('Fetched forms:', formsList);
       setForms(formsList);
-      const labels = await getFormInputLabels();
-      setLabelOptions(labels);
     };
     load();
-  }, [id, isEmbedded, fetchCategoryById, getFormsList, getFormInputLabels]);
+  }, [id, isEmbedded, fetchCategoryById, getFormsList]);
 
   useEffect(() => {
     const loadInputs = async () => {
@@ -308,6 +306,7 @@ const CategoryForm: React.FC<ServiceCategoryFormProps> = ({ editingServiceCatego
         >
           <BookingRequestFormModalBody
             categoryId={id || ''}
+            categoryName={(selectedCategory?.name || editingServiceCategory?.name || '').toString()}
             labelOptions={labelOptions}
             onCancel={() => setBookingFormModalOpen(false)}
             onCreated={async () => {
@@ -347,9 +346,29 @@ const CategoryForm: React.FC<ServiceCategoryFormProps> = ({ editingServiceCatego
   );
 };
 
-const BookingRequestFormModalBody: React.FC<{ categoryId: string; labelOptions: string[]; onCancel: () => void; onCreated: () => void; }> = ({ categoryId, labelOptions, onCancel, onCreated }) => {
-  const { addServiceCategoryFormInput } = useServiceCategoryActions();
+const BookingRequestFormModalBody: React.FC<{ categoryId: string; categoryName: string; labelOptions: string[]; onCancel: () => void; onCreated: () => void; }> = ({ categoryId, categoryName, labelOptions, onCancel, onCreated }) => {
+  const { addServiceCategoryFormInput, getFormInputLabels } = useServiceCategoryActions();
   const toast = useToast();
+  const [localLabelOptions, setLocalLabelOptions] = React.useState<string[]>(labelOptions || []);
+
+  // Fetch labels when popup opens, using the selected category NAME
+  React.useEffect(() => {
+    let isMounted = true;
+    const loadLabels = async () => {
+      if (!categoryName) return;
+      try {
+        const labels = await getFormInputLabels(categoryName?.toLocaleLowerCase());
+        if (isMounted && Array.isArray(labels)) {
+          setLocalLabelOptions(labels);
+        }
+      } catch (e) {}
+    };
+    loadLabels();
+    return () => {
+      isMounted = false;
+    };
+  }, [categoryName]);
+
   const modalForm = useForm<{ label: string; status: 'Active' | 'Inactive'; minrange?: number; maxrange?: number; }>({ defaultValues: { label: '', status: 'Active', minrange: undefined, maxrange: undefined } });
   const submitModal = async (values: { label: string; status: 'Active' | 'Inactive'; minrange?: number; maxrange?: number; }) => {
     try {
@@ -373,7 +392,7 @@ const BookingRequestFormModalBody: React.FC<{ categoryId: string; labelOptions: 
             render={({ field }) => (
               <SelectGroup
                 label="Label"
-                options={[{ label: 'Select...', value: '' }, ...(labelOptions || []).map((l) => ({ label: l, value: l }))]}
+                options={[{ label: 'Select...', value: '' }, ...(localLabelOptions || []).map((l) => ({ label: l, value: l }))]}
                 value={field.value ? [{ label: field.value, value: field.value }] : []}
                 onChange={(sel) => field.onChange(Array.isArray(sel) ? sel[0]?.value : '')}
                 isMulti={false}

@@ -196,7 +196,7 @@ export const serviceCategorySlice = createSlice({
 
     addFormInputStart(state) {
       state.formLoading = true;
-      state.error = null;
+      state.formInputsError = null;
     },
     addFormInputSuccess(
       state,
@@ -222,12 +222,12 @@ export const serviceCategorySlice = createSlice({
     },
     addFormInputFailure(state, action: PayloadAction<string>) {
       state.formLoading = false;
-      state.error = action.payload;
+      state.formInputsError = action.payload;
     },
 
     updateFormInputStart(state) {
       state.formLoading = true;
-      state.error = null;
+      state.formInputsError = null;
     },
     updateFormInputSuccess(
       state,
@@ -253,12 +253,12 @@ export const serviceCategorySlice = createSlice({
     },
     updateFormInputFailure(state, action: PayloadAction<string>) {
       state.formLoading = false;
-      state.error = action.payload;
+      state.formInputsError = action.payload;
     },
 
     removeFormInputStart(state) {
       state.formLoading = true;
-      state.error = null;
+      state.formInputsError = null;
     },
     removeFormInputSuccess(state, action: PayloadAction<string>) {
       state.formLoading = false;
@@ -266,7 +266,7 @@ export const serviceCategorySlice = createSlice({
     },
     removeFormInputFailure(state, action: PayloadAction<string>) {
       state.formLoading = false;
-      state.error = action.payload;
+      state.formInputsError = action.payload;
     },
   },
 });

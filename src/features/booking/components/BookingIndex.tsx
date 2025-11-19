@@ -682,6 +682,9 @@ export const BookingIndex: React.FC = () => {
                               
                               {isAdmin && (() => {
                                 const existingOffer = getBookingOffer(booking);
+                                const bookingStatus = getBookingStatus(booking);
+                                const isConfirmedOrRejected = bookingStatus === 'confirmed' || bookingStatus === 'rejected';
+                                
                                 if (existingOffer) {
                                   return (
                                     <>
@@ -689,24 +692,28 @@ export const BookingIndex: React.FC = () => {
                                         <CheckCircle className="w-3 h-3" />
                                         Offer Sent
                                       </span>
-                                      <Button
-                                        onClick={() => handleEditOffer(booking, existingOffer)}
-                                        className="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-xs whitespace-nowrap flex items-center gap-1"
-                                      >
-                                        <Edit2 className="w-3 h-3" />
-                                        Edit Offer
-                                      </Button>
+                                      {!isConfirmedOrRejected && (
+                                        <Button
+                                          onClick={() => handleEditOffer(booking, existingOffer)}
+                                          className="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-xs whitespace-nowrap flex items-center gap-1"
+                                        >
+                                          <Edit2 className="w-3 h-3" />
+                                          Edit Offer
+                                        </Button>
+                                      )}
                                     </>
                                   );
                                 }
                                 return (
-                                  <Button
-                                    onClick={() => handleSubmitOffer(booking)}
-                                    className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs whitespace-nowrap flex items-center gap-1"
-                                  >
-                                    <DollarSign className="w-3 h-3" />
-                                    Submit Offer
-                                  </Button>
+                                  !isConfirmedOrRejected && (
+                                    <Button
+                                      onClick={() => handleSubmitOffer(booking)}
+                                      className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs whitespace-nowrap flex items-center gap-1"
+                                    >
+                                      <DollarSign className="w-3 h-3" />
+                                      Submit Offer
+                                    </Button>
+                                  )
                                 );
                               })()}
                             </div>

@@ -92,8 +92,9 @@ const ServiceCategoryFormInputs: React.FC = () => {
   const onSubmit = async (data: FormInputSchemaType) => {
     try {
       if (isEditMode && id) {
+        const normalizedLabel = data.label.trim().replace(/_/g, ' ');
         const payload = {
-          label: data.label.trim(),
+          label: normalizedLabel,
           active: data.active === 'Active',
           minrange: data.minrange ? Number(data.minrange) : undefined,
           maxrange: data.maxrange ? Number(data.maxrange) : undefined,
@@ -107,9 +108,10 @@ const ServiceCategoryFormInputs: React.FC = () => {
         return;
       }
 
+      const normalizedLabel = data.label.trim().replace(/_/g, ' ');
       const payload = {
         categoryId: id as string,
-        label: data.label.trim(),
+        label: normalizedLabel,
         active: data.active === 'Active',
         minrange: data.minrange ? Number(data.minrange) : undefined,
         maxrange: data.maxrange ? Number(data.maxrange) : undefined,

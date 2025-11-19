@@ -350,6 +350,7 @@ const BookingRequestFormModalBody: React.FC<{ categoryId: string; categoryName: 
   const { addServiceCategoryFormInput, getFormInputLabels } = useServiceCategoryActions();
   const toast = useToast();
   const [localLabelOptions, setLocalLabelOptions] = React.useState<string[]>(labelOptions || []);
+  const [submitError, setSubmitError] = React.useState<string | null>(null);
 
   // Fetch labels when popup opens, using the selected category NAME
   React.useEffect(() => {
@@ -372,6 +373,7 @@ const BookingRequestFormModalBody: React.FC<{ categoryId: string; categoryName: 
   const modalForm = useForm<{ label: string; status: 'Active' | 'Inactive'; minrange?: number; maxrange?: number; }>({ defaultValues: { label: '', status: 'Active', minrange: undefined, maxrange: undefined } });
   const submitModal = async (values: { label: string; status: 'Active' | 'Inactive'; minrange?: number; maxrange?: number; }) => {
     try {
+      setSubmitError(null);
       if (!categoryId) return;
       const payload: any = { categoryId, label: values.label, active: values.status === 'Active' };
       if (values.minrange !== undefined && values.minrange !== null && values.minrange !== ('' as any)) payload.minrange = Number(values.minrange);
@@ -379,7 +381,15 @@ const BookingRequestFormModalBody: React.FC<{ categoryId: string; categoryName: 
       await addServiceCategoryFormInput(payload);
       toast.success('Form input created');
       onCreated();
-    } catch (e) {}
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        'Failed to create form input';
+      setSubmitError(message);
+      // Keep popup open on error by NOT calling onCreated here
+    }
   };
   return (
     <FormProvider {...modalForm}>
@@ -415,6 +425,7 @@ const BookingRequestFormModalBody: React.FC<{ categoryId: string; categoryName: 
           <InputGroup label="MinRange" name="minrange" id="minrange" type="number" placeholder="Enter min range (optional)" />
           <InputGroup label="MaxRange" name="maxrange" id="maxrange" type="number" placeholder="Enter max range (optional)" />
         </div>
+        {submitError && <FormError message={submitError} />}
         <div className="pt-2">
           <Button type="submit" variant="secondary">Create Form Input</Button>
         </div>

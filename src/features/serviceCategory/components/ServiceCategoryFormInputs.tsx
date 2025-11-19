@@ -169,6 +169,7 @@ const ServiceCategoryFormInputs: React.FC = () => {
                         }}
                         isMulti={false}
                         error={fieldState.error?.message}
+                        disabled={isEditMode}
                       />
                     )}
                   />

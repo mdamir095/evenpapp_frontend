@@ -51,10 +51,10 @@ export const Input: React.FC<InputProps> = ({
         type={isPassword ? (showPassword ? 'text' : 'password') : type}
         disabled={disabled}
         aria-invalid={isError}
-        className={`light:disabled:bg-gray-800/20 rounded-md w-full transition focus:outline-none focus:ring-0 focus:border-blue-500 text-sm
+        className={`light:disabled:bg-gray-800/20 rounded-md w-full transition focus:outline-none focus:ring-0 focus:border-sky-500 text-sm
           ${sizeMap[size]} 
           ${variantMap[variant]} 
-          ${isError ? 'border-red-500 focus:border-red-500' : 'focus:ring-blue-500'} 
+          ${isError ? 'border-red-500 focus:border-red-500' : 'focus:ring-sky-500'} 
           ${isPassword ? 'pr-10' : ''} 
           ${className}`}
       />

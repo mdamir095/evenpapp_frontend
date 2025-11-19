@@ -75,7 +75,7 @@ export const OfferList: React.FC<OfferListProps> = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-600"></div>
         <span className="ml-3 text-gray-600">Loading offers...</span>
       </div>
     );
@@ -131,8 +131,8 @@ export const OfferList: React.FC<OfferListProps> = ({
                   <tr key={offerId} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                          <User className="w-5 h-5 text-blue-600" />
+                        <div className="flex-shrink-0 h-10 w-10 rounded-full bg-sky-100 flex items-center justify-center">
+                          <User className="w-5 h-5 text-sky-600" />
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">
@@ -160,7 +160,7 @@ export const OfferList: React.FC<OfferListProps> = ({
                               // Handle array of objects (ExtraService)
                               if (typeof service === 'object' && service !== null) {
                                 return (
-                                  <div key={idx} className="border-l-2 border-blue-200 pl-2">
+                                  <div key={idx} className="border-l-2 border-sky-200 pl-2">
                                     <div className="font-medium">{service.name || 'Unnamed Service'}</div>
                                     <div className="text-xs text-gray-600">{service.description || 'No description'}</div>
                                     {service.price && service.price > 0 && (
@@ -173,7 +173,7 @@ export const OfferList: React.FC<OfferListProps> = ({
                               }
                               // Handle array of strings
                               return (
-                                <div key={idx} className="border-l-2 border-blue-200 pl-2">
+                                <div key={idx} className="border-l-2 border-sky-200 pl-2">
                                   <div className="text-sm">{service || 'No service name'}</div>
                                 </div>
                               );

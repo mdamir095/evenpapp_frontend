@@ -353,7 +353,7 @@ export const FormCanvas = ({ fields, onFieldsChange, selectedFieldId, onFieldSel
                 onChange={(e) => setFormDescription(e.target.value)}
                 placeholder="Enter form description (optional)"
                 rows={3}
-                className="w-full px-3 py-2 border  rounded-md focus:outline-none  focus:ring-primary  resize-none   text-gray-900 border-gray-300 focus:ring-blue-500 focus:border-blue-500 light:bg-white dark:text-white light:border-gray-700 light:focus:ring-blue-400"
+                className="w-full px-3 py-2 border  rounded-md focus:outline-none  focus:ring-primary  resize-none   text-gray-900 border-gray-300 focus:ring-sky-500 focus:border-sky-500 light:bg-white dark:text-white light:border-gray-700 light:focus:ring-sky-400"
               />
             </div>
           </div>

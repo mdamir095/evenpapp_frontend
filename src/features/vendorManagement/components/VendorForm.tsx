@@ -107,7 +107,7 @@ const DynamicFieldRenderer: React.FC<DynamicFieldRendererProps> = ({
           <Textarea
             id={field.id}
             rows={4}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-0 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-0 focus:ring-sky-500 focus:border-sky-500"
             placeholder={field.placeholder || `Enter ${displayLabel.toLowerCase()}`}
             value={value || ''}
             onChange={(e) => onChange(e.target.value)}
@@ -154,7 +154,7 @@ const DynamicFieldRenderer: React.FC<DynamicFieldRendererProps> = ({
                       onChange(currentValues.filter((v: string) => v !== option.value));
                     }
                   }}
-                  className="h-4 w-4 text-blue-600 focus:border-blue-500 border-gray-300 rounded-sm"
+                  className="h-4 w-4 text-sky-600 focus:border-sky-500 border-gray-300 rounded-sm"
                 />
                 <label htmlFor={`${field.id}_${option.value}`} className="ml-2 block text-sm text-gray-900">
                   {option.label}
@@ -269,7 +269,7 @@ const DynamicFieldRenderer: React.FC<DynamicFieldRendererProps> = ({
             }
           />
           {uploadingImages[field.id] && (
-            <div className="mt-2 text-sm text-blue-600">
+            <div className="mt-2 text-sm text-sky-600">
               📤 Uploading images...
             </div>
           )}
@@ -769,11 +769,11 @@ const VendorForm: React.FC = () => {
 
               {/* Show enterprise info for Enterprise users */}
               {isEnterpriseUser && (
-                <div className="mt-4 p-4 bg-blue-50 rounded-md">
-                  <p className="text-sm text-blue-800">
+                <div className="mt-4 p-4 bg-sky-50 rounded-md">
+                  <p className="text-sm text-sky-800">
                     <strong>Enterprise:</strong> {userData.organizationName}
                   </p>
-                  <p className="text-xs text-blue-600 mt-1">
+                  <p className="text-xs text-sky-600 mt-1">
                     This vendor will be associated with your enterprise account.
                   </p>
                 </div>

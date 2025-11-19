@@ -213,7 +213,7 @@ export const VendorOfferModal: React.FC<VendorOfferModalProps> = ({
                 type="number"
                 value={offerData.offerAmount || ''}
                 onChange={(e) => handleChange('offerAmount', Number(e.target.value))}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                 placeholder="0.00"
                 min="0"
                 step="0.01"
@@ -265,7 +265,7 @@ export const VendorOfferModal: React.FC<VendorOfferModalProps> = ({
                         type="text"
                         value={service.name}
                         onChange={(e) => handleExtraServiceChange(index, 'name', e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                         placeholder="e.g., Extended Coverage"
                       />
                     </div>
@@ -277,7 +277,7 @@ export const VendorOfferModal: React.FC<VendorOfferModalProps> = ({
                         value={service.description}
                         onChange={(e) => handleExtraServiceChange(index, 'description', e.target.value)}
                         rows={2}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                         placeholder="e.g., Additional 2 hours of photography"
                       />
                     </div>
@@ -291,7 +291,7 @@ export const VendorOfferModal: React.FC<VendorOfferModalProps> = ({
                           type="number"
                           value={service.price || ''}
                           onChange={(e) => handleExtraServiceChange(index, 'price', Number(e.target.value))}
-                          className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                           placeholder="0.00"
                           min="0"
                           step="0.01"
@@ -316,7 +316,7 @@ export const VendorOfferModal: React.FC<VendorOfferModalProps> = ({
               value={offerData.notes}
               onChange={(e) => handleChange('notes', e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
               placeholder="Any additional information or terms..."
             />
           </div>

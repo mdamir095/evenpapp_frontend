@@ -371,7 +371,7 @@ const AddVenueForm: React.FC = () => {
         {isLoadingVenue && (
           <div className="flex items-center justify-center py-8">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-600 mx-auto"></div>
               <p className="mt-2 text-sm text-gray-600">Loading venue data...</p>
             </div>
           </div>
@@ -470,7 +470,7 @@ const AddVenueForm: React.FC = () => {
                         <Textarea
                           id="description"
                           rows={4}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-0 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-0 focus:ring-sky-500 focus:border-sky-500"
                           placeholder="Enter venue description"
                           value={field.value}
                           onChange={field.onChange}

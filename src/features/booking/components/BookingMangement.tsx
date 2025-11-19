@@ -221,7 +221,7 @@ export const BookingManagement: React.FC = () => {
       <Layout>
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500 mx-auto mb-4"></div>
             <p className="text-gray-600">Loading dashboard...</p>
           </div>
         </div>
@@ -269,7 +269,7 @@ export const BookingManagement: React.FC = () => {
                     onClick={() => handleTabChange(tab.id as TabType)}
                     className={`flex items-center  cursor-pointer space-x-2 px-4 py-2 rounded-sm transition-colors duration-200 ${
                       activeTab === tab.id
-                        ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
+                        ? 'bg-sky-50 text-sky-600 border-b-2 border-sky-600'
                         : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
                     }`}
                   >
@@ -277,7 +277,7 @@ export const BookingManagement: React.FC = () => {
                       tab.id === 'cancelled' ? 'bg-gray-600' :
                       tab.id === 'pending' ? 'bg-gray-500' :
                       tab.id === 'rejected' ? 'bg-red-600' :
-                      'bg-blue-600'
+                      'bg-sky-600'
                     }`}></span>
                     <span className="font-medium">{tab.label}</span>
                     <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs font-medium">
@@ -320,7 +320,7 @@ export const BookingManagement: React.FC = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {recentBookings.map((booking) => (
                   <tr key={booking.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-sky-600">
                       {booking.bookingNumber}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -356,8 +356,8 @@ export const BookingManagement: React.FC = () => {
                     </td>
                   </tr>
                 ))}
-                <tr className="hover:bg-blue-50 border-b border-gray-100">
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
+                <tr className="hover:bg-sky-50 border-b border-gray-100">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-sky-600">
                      BOKID-2345
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -428,7 +428,7 @@ export const BookingManagement: React.FC = () => {
                       type="number"
                       value={quotationData.venue}
                       onChange={(e) => handleQuotationChange('venue', Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                       placeholder="0"
                     />
                   </div>
@@ -439,7 +439,7 @@ export const BookingManagement: React.FC = () => {
                       type="number"
                       value={quotationData.catering}
                       onChange={(e) => handleQuotationChange('catering', Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                       placeholder="0"
                     />
                   </div>
@@ -450,7 +450,7 @@ export const BookingManagement: React.FC = () => {
                       type="number"
                       value={quotationData.decorations}
                       onChange={(e) => handleQuotationChange('decorations', Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                       placeholder="0"
                     />
                   </div>
@@ -461,7 +461,7 @@ export const BookingManagement: React.FC = () => {
                       type="number"
                       value={quotationData.services}
                       onChange={(e) => handleQuotationChange('services', Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                       placeholder="0"
                     />
                   </div>
@@ -472,7 +472,7 @@ export const BookingManagement: React.FC = () => {
                       type="number"
                       value={quotationData.discount}
                       onChange={(e) => handleQuotationChange('discount', Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                       placeholder="0"
                     />
                   </div>
@@ -483,7 +483,7 @@ export const BookingManagement: React.FC = () => {
                       type="number"
                       value={quotationData.tax}
                       onChange={(e) => handleQuotationChange('tax', Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                       placeholder="0"
                     />
                   </div>
@@ -492,7 +492,7 @@ export const BookingManagement: React.FC = () => {
                   <div className="pt-2 border-t border-gray-200">
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-semibold text-gray-900">Total</span>
-                      <span className="text-lg font-bold text-blue-600">₹{calculateTotal().toLocaleString()}</span>
+                      <span className="text-lg font-bold text-sky-600">₹{calculateTotal().toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
@@ -504,7 +504,7 @@ export const BookingManagement: React.FC = () => {
                     value={quotationData.additionalNotes}
                     onChange={(e) => handleQuotationChange('additionalNotes', e.target.value)}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                     placeholder="Special requirements, terms, conditions..."
                   />
                 </div>

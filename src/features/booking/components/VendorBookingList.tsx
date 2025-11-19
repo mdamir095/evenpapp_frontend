@@ -111,7 +111,7 @@ export const VendorBookingList: React.FC = () => {
       render: (value: string | number | undefined, row: VendorBookingRow, index: number) => (
         <button
           onClick={() => navigate(`/vendor/bookings/${row.id}`)}
-          className="text-blue-600 hover:text-blue-800 font-medium"
+          className="text-sky-600 hover:text-sky-800 font-medium"
         >
           {value}
         </button>
@@ -164,7 +164,7 @@ export const VendorBookingList: React.FC = () => {
             case 'cancelled':
               return { color: 'text-red-700 bg-red-100', icon: XCircle };
             case 'completed':
-              return { color: 'text-blue-700 bg-blue-100', icon: CheckCircle };
+              return { color: 'text-sky-700 bg-sky-100', icon: CheckCircle };
             default:
               return { color: 'text-gray-700 bg-gray-100', icon: Clock };
           }
@@ -227,7 +227,7 @@ export const VendorBookingList: React.FC = () => {
                 variant="primary"
                 size="sm"
                 onClick={() => handleRowAction('submitOffer', row)}
-                className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white"
+                className="flex items-center gap-1 bg-sky-600 hover:bg-sky-700 text-white"
               >
                 <DollarSign className="w-4 h-4" />
                 Submit Offer

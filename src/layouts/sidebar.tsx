@@ -32,8 +32,8 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({
     <div
       className={clsx(
         "relative flex items-center gap-2 p-2 mb-2 cursor-pointer group transition-colors rounded-lg",
-        isActive ? "bg-blue-100 text-neutral-800 font-bold"
-                 : "text-neutral-700 hover:bg-blue-100 hover:text-neutral-800",
+        isActive ? "bg-sky-100 text-neutral-800 font-bold"
+                 : "text-neutral-700 hover:bg-sky-100 hover:text-neutral-800",
         isExpanded ? "" : "justify-center"
       )}
     >
@@ -49,7 +49,7 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({
 
       {/* Badge only in expanded */}
       {badge && isExpanded && (
-        <span className="ml-auto bg-blue-600 text-xs px-2 py-0.5 rounded-md whitespace-nowrap">
+        <span className="ml-auto bg-sky-600 text-xs px-2 py-0.5 rounded-md whitespace-nowrap">
           {badge}
         </span>
       )}
@@ -262,7 +262,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isExpanded, toggleSidebar }) => {
         </div>
         <button
             onClick={toggleSidebar}
-            className="z-1 text-white w-6 h-6 bg-blue-500 hover:bg-blue-600 flex items-center justify-center rounded-full transition-colors duration-200 shadow-sm absolute top-[80px] right-[-12px] cursor-pointer"
+            className="z-1 text-white w-6 h-6 bg-sky-500 hover:bg-sky-600 flex items-center justify-center rounded-full transition-colors duration-200 shadow-sm absolute top-[80px] right-[-12px] cursor-pointer"
           >
             {isExpanded ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
         </button>

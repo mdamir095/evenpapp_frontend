@@ -117,8 +117,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       {/* Chat Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-            <User className="w-5 h-5 text-blue-600" />
+          <div className="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center">
+            <User className="w-5 h-5 text-sky-600" />
           </div>
           <div>
             <p className="text-sm font-semibold text-gray-900">{vendorName}</p>
@@ -147,7 +147,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 <div
                   className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
                     isOwn
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-sky-600 text-white'
                       : 'bg-white text-gray-900 border border-gray-200'
                   }`}
                 >
@@ -159,7 +159,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   <p className="text-sm whitespace-pre-wrap">{message.message}</p>
                   <p
                     className={`text-xs mt-1 ${
-                      isOwn ? 'text-blue-100' : 'text-gray-500'
+                      isOwn ? 'text-sky-100' : 'text-gray-500'
                     }`}
                   >
                     {new Date(message.timestamp).toLocaleTimeString([], {
@@ -183,7 +183,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Type your message..."
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 resize-none"
             rows={2}
             disabled={sending}
           />

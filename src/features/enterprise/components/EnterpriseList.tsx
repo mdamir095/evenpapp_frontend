@@ -262,7 +262,7 @@ const EnterpriseList: React.FC = () => {
 
               {loadingDetails ? (
                 <div className="flex items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-600"></div>
                   <span className="ml-3 text-gray-600">Loading details...</span>
                 </div>
               ) : fullEnterpriseDetails ? (
@@ -410,7 +410,7 @@ const EnterpriseList: React.FC = () => {
                             </div>
                             <div className="flex flex-wrap gap-2">
                               {feature.permissions.read && (
-                                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-sky-100 text-sky-700">
                                   Read
                                 </span>
                               )}

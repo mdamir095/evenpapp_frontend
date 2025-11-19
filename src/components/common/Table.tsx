@@ -107,7 +107,7 @@ function TableComponent<T extends { id: string | number }>({
           </thead>
           <tbody>
             {paginatedData.map((row) => (
-              <tr key={row.id} className="hover:bg-blue-50">
+              <tr key={row.id} className="hover:bg-sky-50">
                 {columns.map((col) => (
                   <td
                     key={col.key}
@@ -120,7 +120,7 @@ function TableComponent<T extends { id: string | number }>({
                 {onRowAction && (
                   <td className="px-4 py-2 whitespace-nowrap flex gap-2">
                     <button
-                      className="text-blue-500"
+                      className="text-sky-500"
                       onClick={() => onRowAction('edit', row)}
                     >
                       Edit

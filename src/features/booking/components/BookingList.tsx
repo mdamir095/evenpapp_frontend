@@ -162,7 +162,7 @@ export const BookingList: React.FC = () => {
       render: (value: string | number | undefined, row: BookingRow, index: number) => (
         <button
           onClick={() => navigate(`/booking-management/${row.id}`)}
-          className="text-blue-600 hover:text-blue-800 font-medium"
+          className="text-sky-600 hover:text-sky-800 font-medium"
         >
           {value}
         </button>
@@ -214,7 +214,7 @@ export const BookingList: React.FC = () => {
             case 'cancelled':
               return { color: 'text-red-700 bg-red-100', icon: XCircle };
             case 'completed':
-              return { color: 'text-blue-700 bg-blue-100', icon: CheckCircle };
+              return { color: 'text-sky-700 bg-sky-100', icon: CheckCircle };
             default:
               return { color: 'text-gray-700 bg-gray-100', icon: Clock };
           }
@@ -523,9 +523,9 @@ export const BookingList: React.FC = () => {
 
         {/* Bulk Actions */}
         {selectedBookings.length > 0 && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-sky-50 border border-sky-200 rounded-lg p-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-blue-700">
+              <span className="text-sm text-sky-700">
                 {selectedBookings.length} booking(s) selected
               </span>
               

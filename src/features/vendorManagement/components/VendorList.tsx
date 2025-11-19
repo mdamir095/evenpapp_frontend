@@ -440,24 +440,23 @@ const VendorList: React.FC = () => {
           {/* Location Management Modal */}
           {showLocationModal && selectedVendorForLocation && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-              <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-                <div className="p-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-semibold text-gray-800">
-                      Manage Locations for {selectedVendorForLocation.name}
-                    </h2>
-                    <Button
-                      variant='muted'
-                      onClick={() => {
-                        setShowLocationModal(false);
-                        setSelectedVendorForLocation(null);
-                      }}
-                      className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
-                    >
-                       <X className='w-6 h-6' />
-                    </Button>
-                  </div>
-                  
+              <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] ">
+                {/* Modal Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 shrink-0">
+                <h2 className="text-xl font-semibold text-gray-900"> Manage Locations for {selectedVendorForLocation.name}</h2>
+                <Button
+                  onClick={() => {
+                    setShowLocationModal(false);
+                    setSelectedVendorForLocation(null);
+                  }}
+                   variant='muted'
+                  className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+                 {/* Modal Body */}
+                <div className="p-6 space-y-4 overflow-y-auto flex-1">
                   <ListingLocationManager
                     serviceId={selectedVendorForLocation.id}
                     serviceName={selectedVendorForLocation.name}
@@ -471,6 +470,8 @@ const VendorList: React.FC = () => {
                      }}
                   />
                 </div>
+                {/* Modal Footer */}
+                
               </div>
             </div>
           )}
@@ -508,25 +509,27 @@ const VendorList: React.FC = () => {
           {/* Vendor Details Modal */}
           {showDetailsModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-              <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-                <div className="p-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-semibold text-gray-800">Vendor Details</h2>
-                    <Button
-                      variant='muted'
-                      onClick={() => {
-                        setShowDetailsModal(false);
-                        setSelectedVendorDetails(null);
-                      }}
-                      className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
-                    >
-                      <X className='w-6 h-6' />
-                    </Button>
-                  </div>
+              <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                  {/* Modal Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 shrink-0">
+                <h2 className="text-xl font-semibold text-gray-900"> Vendor Details</h2>
+                <Button
+                  onClick={() => {
+                    setShowDetailsModal(false);
+                    setSelectedVendorDetails(null);
+                  }}
+                   variant='muted'
+                  className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
 
+                {/* Modal Body */}
+                <div className="p-6 space-y-4 overflow-y-auto flex-1  max-h-[65vh] ">
                   {loadingDetails ? (
                     <div className="flex items-center justify-center py-12">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-600"></div>
                       <span className="ml-3 text-gray-600">Loading details...</span>
                     </div>
                   ) : selectedVendorDetails ? (
@@ -597,11 +600,24 @@ const VendorList: React.FC = () => {
 
                       {/* Action Buttons */}
                       <div className="flex gap-3 pt-4">
-                        <Button
+                       
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <p className="text-gray-500">No details available</p>
+                    </div>
+                  )}
+                </div>
+                 {/* Modal Footer */}
+              <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 shrink-0">
+              <Button
                           variant="primary"
                           onClick={() => {
                             setShowDetailsModal(false);
-                            navigate(`/vendor-management/${selectedVendorDetails.id}`);
+                            if (selectedVendorDetails?.id) {
+                              navigate(`/vendor-management/${selectedVendorDetails.id}`);
+                            }
                           }}
                         >
                           Edit Vendor
@@ -615,14 +631,7 @@ const VendorList: React.FC = () => {
                         >
                           Close
                         </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center py-12">
-                      <p className="text-gray-500">No details available</p>
-                    </div>
-                  )}
-                </div>
+              </div>
               </div>
             </div>
           )}

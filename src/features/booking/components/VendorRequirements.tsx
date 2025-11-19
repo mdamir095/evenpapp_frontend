@@ -122,7 +122,7 @@ export const VendorRequirements: React.FC = () => {
       render: (value: string | number | boolean, row: RequirementRow, index: number) => (
         <button
           onClick={() => navigate(`/vendor/requirements/${row.id}`)}
-          className="text-blue-600 hover:text-blue-800 font-medium"
+          className="text-sky-600 hover:text-sky-800 font-medium"
         >
           {value}
         </button>
@@ -144,7 +144,7 @@ export const VendorRequirements: React.FC = () => {
       label: 'Event Type',
       sortable: true,
       render: (value: string | number | boolean, row: RequirementRow, index: number) => (
-        <span className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+        <span className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-sky-100 text-sky-800">
           {value}
         </span>
       ),

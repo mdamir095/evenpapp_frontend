@@ -233,7 +233,7 @@ const UserList: React.FC = () => {
 
               {loadingDetails ? (
                 <div className="flex items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-600"></div>
                   <span className="ml-3 text-gray-600">Loading details...</span>
                 </div>
               ) : fullUserDetails ? (
@@ -390,7 +390,7 @@ const UserList: React.FC = () => {
                             {fullUserDetails.roles.map((role: any, index: number) => (
                               <span
                                 key={role.id || role._id || index}
-                                className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200"
+                                className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-sky-100 text-sky-700 border border-sky-200"
                               >
                                 {role.name || role.roleName || role}
                               </span>
@@ -405,7 +405,7 @@ const UserList: React.FC = () => {
                             {fullUserDetails.roleIds.map((roleId: string, index: number) => (
                               <span
                                 key={roleId || index}
-                                className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200"
+                                className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-sky-100 text-sky-700 border border-sky-200"
                               >
                                 {roleId}
                               </span>

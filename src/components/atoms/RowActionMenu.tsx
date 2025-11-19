@@ -231,7 +231,7 @@ export const RowActionMenu = ({
                   setOpen(false);
                   onUnblock?.();
                 }}
-                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-blue-700 cursor-pointer"
+                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-sky-700 cursor-pointer"
                 role="menuitem"
               >
                 <Shield className="size-4" /> Unblock

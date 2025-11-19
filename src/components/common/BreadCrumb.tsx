@@ -112,7 +112,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps & { separator?: React.ReactNode }> 
               <span className="text-neutral-400 ">{separator}</span>
               {isLast ? (
                 <span
-                  className="font-semibold text-blue-600 cursor-pointer"
+                  className="font-semibold text-sky-600 cursor-pointer"
                   aria-current="page"
                 >
                   {item.label}

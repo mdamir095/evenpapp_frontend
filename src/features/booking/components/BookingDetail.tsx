@@ -145,7 +145,13 @@ export const BookingDetail: React.FC = () => {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-start gap-4 flex-col">
+          <div className="flex items-start gap-4 flex-row">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-800">
+                Booking Details
+              </h2>
+              <Breadcrumbs />
+            </div>
             <Button
               variant="muted"
               onClick={() => navigate('/booking-management')}
@@ -154,12 +160,6 @@ export const BookingDetail: React.FC = () => {
               <ArrowLeft className="w-4 h-4" />
               Back
             </Button>
-            <div>
-              <h2 className="text-xl font-semibold text-gray-800">
-                Booking Details
-              </h2>
-              <Breadcrumbs />
-            </div>
           </div>
         </div>
 
@@ -190,7 +190,7 @@ export const BookingDetail: React.FC = () => {
                     <Calendar className="w-4 h-4" />
                     Event Date & Time
                   </label>
-                  <p className="text-sm text-gray-900 mt-1">
+                  <p className="text-sm text-gray-900 mt-1 font-semibold">
                     {booking.startDateTime || booking.eventDate || booking.date
                       ? new Date(booking.startDateTime || booking.eventDate || booking.date).toLocaleString()
                       : 'N/A'}

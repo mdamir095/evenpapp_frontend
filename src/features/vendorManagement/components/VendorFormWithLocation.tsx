@@ -304,6 +304,7 @@ const VendorFormWithLocation: React.FC = () => {
   const [dynamicForm, setDynamicForm] = useState<DynamicForm | null>(null);
   const [dynamicFormData, setDynamicFormData] = useState<Record<string, any>>({});
   const [dynamicFormErrors, setDynamicFormErrors] = useState<Record<string, string>>({});
+  const [uploadingImages, setUploadingImages] = useState<Record<string, boolean>>({});
   const [savedVendorId, setSavedVendorId] = useState<string | null>(null);
   const [enterprises, setEnterprises] = useState<any[]>([]);
 

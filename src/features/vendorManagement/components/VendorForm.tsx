@@ -472,25 +472,135 @@ const VendorForm: React.FC = () => {
     loadDynamicForm();
   }, [watchedCategoryId, selectedCategoryId, isEditMode, selectedVendor]);
 
-  // Helper function to upload a single image immediately
+  // Helper function to upload a single image immediately to Supabase
+  // This uploads to Supabase storage via the backend API endpoint (same as profile section)
   const uploadSingleImage = async (file: File): Promise<string> => {
+    // Validate file before upload (same as profile section)
+    if (!file) {
+      throw new Error('No file provided');
+    }
+    
+    // Check file size (limit to 5MB) - same as profile section
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      throw new Error('File size too large. Maximum size is 5MB.');
+    }
+    
+    // Check file type - same as profile section
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      throw new Error('Invalid file type. Only JPEG, PNG, and GIF files are allowed.');
+    }
+    
     const formData = new FormData();
     formData.append('file', file);
     
     try {
-      const response = await api.post('/vendors/upload-image', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
+      console.log('Uploading image to Supabase:', {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type
       });
-      return response.data.data; // Return the image URL
-    } catch (error) {
-      throw error;
+      
+      // Try vendors endpoint first, then fallback to venues endpoint (same pattern as profile/upload)
+      let response;
+      let endpointUsed = '/vendors/upload-image';
+      
+      try {
+        response = await api.post('/vendors/upload-image', formData, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+      } catch (vendorError: any) {
+        // If vendors endpoint fails with 500/404, try venues endpoint as fallback
+        if (vendorError?.response?.status === 500 || vendorError?.response?.status === 404) {
+          console.warn('Vendors upload endpoint failed, trying venues endpoint as fallback');
+          endpointUsed = '/venues/upload-image';
+          response = await api.post('/venues/upload-image', formData, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+        } else {
+          throw vendorError;
+        }
+      }
+      
+      console.log('Upload response:', response.data);
+      
+      // Handle response structure - same as profile section and venue section
+      // Profile returns: response.data.data (string)
+      // Venue returns: { status: "OK", data: { imageUrl: "..." } }
+      let imageUrl: string | undefined;
+      
+      if (typeof response.data?.data === 'string') {
+        // Profile-style response: direct string URL
+        imageUrl = response.data.data;
+      } else if (response.data?.data?.imageUrl) {
+        // Venue-style response: nested object
+        imageUrl = response.data.data.imageUrl;
+      } else if (response.data?.data) {
+        imageUrl = response.data.data;
+      } else if (response.data?.url) {
+        imageUrl = response.data.url;
+      } else if (response.data?.imageUrl) {
+        imageUrl = response.data.imageUrl;
+      } else if (typeof response.data === 'string') {
+        imageUrl = response.data;
+      }
+      
+      // Ensure we got a valid Supabase URL
+      if (!imageUrl) {
+        console.error('Invalid response structure:', response.data);
+        throw new Error('Invalid response: No image URL returned from server');
+      }
+      
+      // Ensure fileUrl is a string (same as profile section)
+      const imageUrlString = typeof imageUrl === 'string' ? imageUrl : String(imageUrl);
+      
+      if (imageUrlString.startsWith('data:')) {
+        throw new Error('Invalid response: Received data URL instead of Supabase URL');
+      }
+      
+      console.log('Image uploaded successfully to Supabase:', imageUrlString);
+      return imageUrlString; // Return the Supabase URL
+    } catch (error: any) {
+      console.error('Error uploading image to Supabase:', error);
+      
+      // Extract detailed error message (same pattern as profile section)
+      let errorMessage = 'Image upload failed';
+      
+      if (error?.response?.status === 500) {
+        errorMessage = 'Server error during image upload. Please try again or contact support.';
+      } else if (error?.response?.status === 413) {
+        errorMessage = 'File too large. Please choose a smaller image.';
+      } else if (error?.response?.status === 415) {
+        errorMessage = 'Unsupported file type. Please use JPEG, PNG, or GIF images.';
+      } else if (error?.response?.status === 401) {
+        errorMessage = 'Authentication failed. Please log in again.';
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      console.error('Upload error details:', {
+        status: error?.response?.status,
+        statusText: error?.response?.statusText,
+        data: error?.response?.data,
+        message: errorMessage,
+        endpoint: endpointUsed
+      });
+      
+      throw new Error(errorMessage);
     }
   };
 
-  // Helper function to handle immediate image upload when images are selected
+  // Helper function to handle immediate image upload to Supabase when images are selected
+  // This ensures images are uploaded to Supabase storage immediately, not stored locally
   const handleImageUpload = async (fieldId: string, images: any[]) => {
     setUploadingImages(prev => ({ ...prev, [fieldId]: true }));
     
@@ -498,15 +608,15 @@ const VendorForm: React.FC = () => {
       const uploadedImages = await Promise.all(
         images.map(async (img: any) => {
           if (img.file && !img.url) {
-            // Upload new file
-            const url = await uploadSingleImage(img.file);
+            // Upload new file to Supabase immediately (not stored locally)
+            const supabaseUrl = await uploadSingleImage(img.file);
             return {
               ...img,
-              url: url,
+              url: supabaseUrl, // Store Supabase URL, not local data URL
               uploaded: true
             };
           }
-          // Return existing image (already uploaded)
+          // Return existing image (already uploaded to Supabase)
           return {
             ...img,
             uploaded: true
@@ -514,14 +624,22 @@ const VendorForm: React.FC = () => {
         })
       );
       
-      // Update the form data with uploaded images
+      // Update the form data with Supabase URLs
       setDynamicFormData(prev => ({
         ...prev,
         [fieldId]: uploadedImages
       }));
       
-    } catch (error) {
-      toast.error('Failed to upload images. Please try again.');
+    } catch (error: any) {
+      console.error('Error uploading images to Supabase:', error);
+      
+      // Extract detailed error message
+      const errorMessage = error?.message || 
+                          error?.response?.data?.message || 
+                          error?.response?.data?.error || 
+                          'Failed to upload images to Supabase';
+      
+      toast.error(errorMessage || 'Failed to upload images to Supabase. Please try again.');
     } finally {
       setUploadingImages(prev => ({ ...prev, [fieldId]: false }));
     }
@@ -547,18 +665,68 @@ const VendorForm: React.FC = () => {
         const fieldValue = dynamicFormData[field.id] || field.metadata?.defaultValue || '';
         
         if (field.type === 'MultiImageUpload' && Array.isArray(fieldValue)) {
-          // Images are already uploaded, just extract URLs
-          const imageData = fieldValue.map((img: any) => ({
-            id: img.id || `img_${Date.now()}_${Math.random()}`,
-            name: img.name || `image_${Math.random()}.jpg`,
-            url: img.url || ''
-          }));
+          // Extract only Supabase URLs from uploaded images (filter out images without URLs)
+          const uploadedImages = fieldValue
+            .filter((img: any) => {
+              // Only include images that have been uploaded (have a URL)
+              // Exclude images that only have file objects (not yet uploaded)
+              if (img.file && !img.url && !img.uploaded) {
+                return false; // Skip images that haven't been uploaded yet
+              }
+              
+              // Check if image has URL in any format
+              let hasUrl = false;
+              if (typeof img.url === 'string' && img.url.trim() !== '') {
+                hasUrl = true;
+              } else if (img.url?.imageUrl && typeof img.url.imageUrl === 'string' && img.url.imageUrl.trim() !== '') {
+                hasUrl = true;
+              } else if (img.uploaded && img.preview && typeof img.preview === 'string' && img.preview.startsWith('http')) {
+                // Only use preview if it's a full URL (not a data URL)
+                hasUrl = true;
+              }
+              
+              return hasUrl;
+            })
+            .map((img: any) => {
+              // Extract URL - handle both flat string and nested object formats
+              let imageUrl = '';
+              
+              // Priority: url (string) > url.imageUrl > preview (if it's a full URL)
+              if (typeof img.url === 'string' && img.url.trim() !== '') {
+                imageUrl = img.url.trim();
+              } else if (img.url?.imageUrl && typeof img.url.imageUrl === 'string' && img.url.imageUrl.trim() !== '') {
+                imageUrl = img.url.imageUrl.trim();
+              } else if (img.uploaded && img.preview && typeof img.preview === 'string' && img.preview.startsWith('http')) {
+                // Only use preview if it's a full URL (not a data URL from FileReader)
+                imageUrl = img.preview;
+              }
+              
+              // Ensure we have a valid Supabase URL (not a file name or local data URL)
+              // Only accept URLs that start with http/https (Supabase URLs) or absolute paths
+              if (!imageUrl || 
+                  imageUrl.startsWith('data:') || // Reject local data URLs
+                  (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://') && !imageUrl.startsWith('/'))) {
+                console.warn('Skipping image without valid Supabase URL:', img);
+                return null;
+              }
+              
+              // Return in the format expected by backend: nested url.imageUrl structure
+              // Set name to the URL instead of file name
+              return {
+                id: img.id || `img_${Date.now()}_${Math.random()}`,
+                name: imageUrl, // Use URL as name instead of file name
+                url: {
+                  imageUrl: imageUrl
+                }
+              };
+            })
+            .filter((img: any) => img !== null); // Remove any null entries
           
-          processedFields[field.name || field.label] = imageData;
+          processedFields[field.name || field.label] = uploadedImages;
           
-          // Set first image as main image
-          if (!firstImageUrl && imageData.length > 0 && imageData[0].url) {
-            firstImageUrl = imageData[0].url;
+          // Set first image as main image (only if it has a valid Supabase URL)
+          if (!firstImageUrl && uploadedImages.length > 0 && uploadedImages[0]?.url?.imageUrl) {
+            firstImageUrl = uploadedImages[0].url.imageUrl;
           }
         } else {
           // Handle other field types

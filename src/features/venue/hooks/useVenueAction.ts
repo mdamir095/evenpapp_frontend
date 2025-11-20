@@ -137,8 +137,9 @@ export function useVenueActions() {
 
   const getDynamicFormByCategory = useCallback(async (categoryId: string) => {
     try {
-      console.log('Fetching dynamic form for service category:', categoryId);
-      const response = await api.get(`service-category/user/${categoryId}`, {
+      console.log('Fetching dynamic form for service category (venue):', categoryId);
+      // Add type=venue query parameter to differentiate from vendor
+      const response = await api.get(`service-category/user/${categoryId}?type=venue`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`

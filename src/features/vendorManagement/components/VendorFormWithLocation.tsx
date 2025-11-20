@@ -364,11 +364,46 @@ const VendorFormWithLocation: React.FC = () => {
         // Pre-populate form data if editing
         if (selectedVendor.formData && selectedVendor.formData.fields) {
           const extractedData: Record<string, any> = {};
-          selectedVendor.formData.fields.forEach((field: any) => {
-            if (field.actualValue !== undefined) {
-              extractedData[field.id] = field.actualValue;
-            }
-          });
+          
+          // Handle array format: [{ id, type, actualValue: [...] }]
+          if (Array.isArray(selectedVendor.formData.fields)) {
+            selectedVendor.formData.fields.forEach((field: any) => {
+              if (field.actualValue !== undefined) {
+                // Handle MultiImageUpload fields with url.imageUrl structure
+                if (field.type === 'MultiImageUpload' && Array.isArray(field.actualValue)) {
+                  const transformedImages = field.actualValue.map((img: any) => {
+                    let imageUrl = '';
+                    
+                    // Handle the format: { id, name, url: { imageUrl: "..." } }
+                    if (img?.url?.imageUrl && typeof img.url.imageUrl === 'string') {
+                      imageUrl = img.url.imageUrl;
+                    } else if (typeof img.url === 'string') {
+                      imageUrl = img.url;
+                    } else if (typeof img === 'string') {
+                      imageUrl = img;
+                    }
+                    
+                    // Return in format expected by MultiImageUpload component
+                    return {
+                      id: img.id || `img_${Date.now()}_${Math.random()}`,
+                      name: img.name || imageUrl || 'image',
+                      url: imageUrl, // Store as flat string for component
+                      uploaded: true
+                    };
+                  });
+                  extractedData[field.id] = transformedImages;
+                } else {
+                  extractedData[field.id] = field.actualValue;
+                }
+              }
+            });
+          } else {
+            // Handle object format (fallback)
+            Object.entries(selectedVendor.formData.fields).forEach(([fieldName, value]) => {
+              extractedData[fieldName] = value;
+            });
+          }
+          
           setDynamicFormData(extractedData);
         }
       }

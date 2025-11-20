@@ -382,10 +382,46 @@ const VendorForm: React.FC = () => {
           
           // Handle both array and object formats for fields
           if (Array.isArray(selectedVendor.formData.fields)) {
-            // If fields is an array (old format)
+            // If fields is an array (format: [{ id, type, actualValue: [...] }])
             selectedVendor.formData.fields.forEach((field: any) => {
               if (field.actualValue !== undefined) {
-                extractedData[field.id] = field.actualValue;
+                // Handle MultiImageUpload fields with url.imageUrl structure
+                if (field.type === 'MultiImageUpload' && Array.isArray(field.actualValue)) {
+                  const transformedImages = field.actualValue.map((img: any) => {
+                    let imageUrl = '';
+                    
+                    // Handle the format: { id, name, url: { imageUrl: "..." } }
+                    if (img?.url?.imageUrl && typeof img.url.imageUrl === 'string') {
+                      imageUrl = img.url.imageUrl;
+                    } else if (typeof img.url === 'string') {
+                      imageUrl = img.url;
+                    } else if (typeof img === 'string') {
+                      imageUrl = img;
+                    } else if (img?.preview && typeof img.preview === 'string') {
+                      imageUrl = img.preview;
+                    }
+                    
+                    // If the URL is relative, construct the full URL
+                    if (imageUrl && imageUrl.startsWith('/uploads/')) {
+                      const imageBaseUrl = import.meta.env.VITE_IMAGE_BASE_URL || 
+                        (import.meta.env.VITE_API_BASE_URL 
+                          ? import.meta.env.VITE_API_BASE_URL.replace('/api/v1/', '') 
+                          : 'http://localhost:10030');
+                      imageUrl = `${imageBaseUrl}${imageUrl}`;
+                    }
+                    
+                    // Return in format expected by MultiImageUpload component
+                    return {
+                      id: img.id || `img_${Date.now()}_${Math.random()}`,
+                      name: img.name || imageUrl || 'image',
+                      url: imageUrl, // Store as flat string for component
+                      uploaded: true // Mark as already uploaded
+                    };
+                  });
+                  extractedData[field.id] = transformedImages;
+                } else {
+                  extractedData[field.id] = field.actualValue;
+                }
               }
             });
           } else if (typeof selectedVendor.formData.fields === 'object') {
@@ -399,37 +435,38 @@ const VendorForm: React.FC = () => {
                   // Handle MultiImageUpload fields specially
                   if (matchingField.type === 'MultiImageUpload' && Array.isArray(value)) {
                     // Transform the image data to match the expected format
-                     const transformedImages = value.map((img: any) => {
-                       let imageUrl = '';
-                       
-                       // Safely extract URL from various possible structures
-                       if (typeof img === 'string') {
-                         imageUrl = img;
-                       } else if (img?.url?.data && typeof img.url.data === 'string') {
-                         imageUrl = img.url.data;
-                       } else if (img?.url && typeof img.url === 'string') {
-                         imageUrl = img.url;
-                       } else if (img?.preview && typeof img.preview === 'string') {
-                         imageUrl = img.preview;
-                       }
-                       
-                       // If the URL is relative, construct the full URL
-                       if (imageUrl && imageUrl.startsWith('/uploads/')) {
-                         // Use IMAGE_BASE_URL from config, or construct from API base URL
-                         const imageBaseUrl = import.meta.env.VITE_IMAGE_BASE_URL || 
-                           (import.meta.env.VITE_API_BASE_URL 
-                             ? import.meta.env.VITE_API_BASE_URL.replace('/api/v1/', '') 
-                             : 'http://localhost:10030');
-                         imageUrl = `${imageBaseUrl}${imageUrl}`;
-                       }
-                       
-                       return {
-                         id: img.id || `img_${Date.now()}_${Math.random()}`,
-                         name: img.name || 'image',
-                         url: imageUrl,
-                         uploaded: true // Mark as already uploaded
-                       };
-                     });
+                    // Handle format: [{ id, name, url: { imageUrl: "..." } }]
+                    const transformedImages = value.map((img: any) => {
+                      let imageUrl = '';
+                      
+                      // Handle the format: { id, name, url: { imageUrl: "..." } }
+                      if (img?.url?.imageUrl && typeof img.url.imageUrl === 'string') {
+                        imageUrl = img.url.imageUrl;
+                      } else if (typeof img.url === 'string') {
+                        imageUrl = img.url;
+                      } else if (typeof img === 'string') {
+                        imageUrl = img;
+                      } else if (img?.preview && typeof img.preview === 'string') {
+                        imageUrl = img.preview;
+                      }
+                      
+                      // If the URL is relative, construct the full URL
+                      if (imageUrl && imageUrl.startsWith('/uploads/')) {
+                        const imageBaseUrl = import.meta.env.VITE_IMAGE_BASE_URL || 
+                          (import.meta.env.VITE_API_BASE_URL 
+                            ? import.meta.env.VITE_API_BASE_URL.replace('/api/v1/', '') 
+                            : 'http://localhost:10030');
+                        imageUrl = `${imageBaseUrl}${imageUrl}`;
+                      }
+                      
+                      // Return in format expected by MultiImageUpload component
+                      return {
+                        id: img.id || `img_${Date.now()}_${Math.random()}`,
+                        name: img.name || imageUrl || 'image',
+                        url: imageUrl, // Store as flat string for component
+                        uploaded: true // Mark as already uploaded
+                      };
+                    });
                     extractedData[matchingField.id] = transformedImages;
                   } else {
                     extractedData[matchingField.id] = value;
@@ -502,9 +539,8 @@ const VendorForm: React.FC = () => {
         fileType: file.type
       });
       
-      // Use profile/upload endpoint (same as profile section) - it works for all image uploads
-      // This endpoint uploads to Supabase and works consistently
-      const response = await api.post('profile/upload', formData, {
+      // Upload to Supabase via venues/upload-image endpoint (same as venue module)
+      const response = await api.post('/venues/upload-image', formData, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'multipart/form-data',
@@ -513,23 +549,29 @@ const VendorForm: React.FC = () => {
       
       console.log('Upload response:', response.data);
       
-      // Handle response structure - same as profile section
-      // Profile/upload returns: response.data.data (string URL directly)
-      const fileUrl = response.data.data;
+      // Handle response structure - same as venue section
+      // Venues/upload-image returns: { status: "OK", data: { imageUrl: "..." } }
+      const imageUrl = response.data?.data?.imageUrl || 
+                      response.data?.data || 
+                      response.data?.url || 
+                      response.data?.imageUrl ||
+                      response.data;
       
-      if (!fileUrl) {
-        throw new Error('File URL not returned');
+      // Ensure we got a valid Supabase URL
+      if (!imageUrl) {
+        console.error('Invalid response structure:', response.data);
+        throw new Error('Invalid response: No image URL returned from server');
       }
       
-      // Ensure fileUrl is a string (same as profile section)
-      const imageUrl = typeof fileUrl === 'string' ? fileUrl : String(fileUrl);
+      // Ensure fileUrl is a string
+      const imageUrlString = typeof imageUrl === 'string' ? imageUrl : String(imageUrl);
       
-      if (imageUrl.startsWith('data:')) {
+      if (imageUrlString.startsWith('data:')) {
         throw new Error('Invalid response: Received data URL instead of Supabase URL');
       }
       
-      console.log('Image uploaded successfully to Supabase:', imageUrl);
-      return imageUrl; // Return the Supabase URL
+      console.log('Image uploaded successfully to Supabase:', imageUrlString);
+      return imageUrlString; // Return the Supabase URL
     } catch (error: any) {
       console.error('Error uploading image to Supabase:', error);
       
@@ -555,7 +597,7 @@ const VendorForm: React.FC = () => {
         statusText: error?.response?.statusText,
         data: error?.response?.data,
         message: errorMessage,
-        endpoint: 'profile/upload'
+        endpoint: '/venues/upload-image'
       });
       
       throw new Error(errorMessage);
@@ -621,12 +663,13 @@ const VendorForm: React.FC = () => {
 
     // Process dynamic form fields (images are already uploaded)
     if (dynamicForm && dynamicForm.fields) {
-      const processedFields: Record<string, any> = {};
       let firstImageUrl = '';
 
-      dynamicForm.fields.forEach(field => {
+      // Process fields as array with actualValue (same as venue module)
+      const processedFields = dynamicForm.fields.map((field: any) => {
         const fieldValue = dynamicFormData[field.id] || field.metadata?.defaultValue || '';
         
+        // Handle MultiImageUpload fields - extract URLs only (not file names)
         if (field.type === 'MultiImageUpload' && Array.isArray(fieldValue)) {
           // Extract only Supabase URLs from uploaded images (filter out images without URLs)
           const uploadedImages = fieldValue
@@ -685,26 +728,32 @@ const VendorForm: React.FC = () => {
             })
             .filter((img: any) => img !== null); // Remove any null entries
           
-          processedFields[field.name || field.label] = uploadedImages;
-          
           // Set first image as main image (only if it has a valid Supabase URL)
           if (!firstImageUrl && uploadedImages.length > 0 && uploadedImages[0]?.url?.imageUrl) {
             firstImageUrl = uploadedImages[0].url.imageUrl;
           }
-        } else {
-          // Handle other field types
-          processedFields[field.name || field.label] = fieldValue;
+          
+          return {
+            ...field,
+            actualValue: uploadedImages
+          };
         }
+        
+        // Handle other field types
+        return {
+          ...field,
+          actualValue: fieldValue
+        };
       });
 
-      // Create the formData object in the expected format
+      // Create the formData object in the expected format (same as venue module)
       jsonData.formData = {
-        _id: dynamicForm.id,
+        _id: dynamicForm.id || dynamicForm._id,
         name: dynamicForm.name,
         description: dynamicForm.description || '',
         categoryId: data.serviceCategoryId,
         type: 'vendor-service',
-        fields: processedFields,
+        fields: processedFields, // Array format with actualValue (same as venue)
         key: dynamicForm.key || '',
         isActive: true,
         isDeleted: false,
@@ -713,6 +762,9 @@ const VendorForm: React.FC = () => {
         createdAt: dynamicForm.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
+      
+      // Add formId to main payload (same as venue module)
+      jsonData.formId = dynamicForm.id || dynamicForm._id || dynamicForm.formId || '';
 
       // Add imageUrl if we have uploaded images
       if (firstImageUrl) {
@@ -733,6 +785,10 @@ const VendorForm: React.FC = () => {
 
       // Create JSON data (images are already uploaded)
       const jsonData = createJsonData(data);
+      
+      // Debug: Log the payload to verify images are included
+      console.log('Vendor form submission payload:', JSON.stringify(jsonData, null, 2));
+      console.log('FormData fields with images:', jsonData.formData?.fields?.filter((f: any) => f.type === 'MultiImageUpload'));
 
       if (id) {
         await updateVendor(id, jsonData);

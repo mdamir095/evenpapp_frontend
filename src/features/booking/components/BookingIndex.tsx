@@ -533,7 +533,7 @@ export const BookingIndex: React.FC = () => {
       
                 {/* Tabs */}
          
-          <div className=" mt-0">
+          <div className=" mt-0 overflow-hidden ">
             {/* Tabs */}
             <div className="border-gray-200 border-b-0 p-0 m-0">
               <div className="px-0 pt-0">
@@ -570,8 +570,8 @@ export const BookingIndex: React.FC = () => {
             </div>
 
             {/* Table */}
-            <div className="w-full overflow-x-auto border border-gray-300 rounded-b-xl">
-              <div className="max-h-[600px] overflow-y-auto">
+            <div className="overflow-hidden rounded-xl border border-gray-300 scheme-light">
+              <div className="max-h-[600px] overflow-y-auto overflow-x-scroll">
                 <table className="min-w-full rounded-b-xl table-fixed">
                   <thead className="sticky top-0 z-10 divide-y divide-gray-200 text-left text-md bg-white">
                   <tr className="bg-neutral-100 font-normal cursor-pointer">

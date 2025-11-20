@@ -122,7 +122,7 @@ export function useVenueActions() {
 
   const getServiceCategories = useCallback(async () => {
     try {
-      const response = await api.get('service-category?page=1&limit=100', {
+      const response = await api.get('venue-category?page=1&limit=100', {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -130,15 +130,15 @@ export function useVenueActions() {
       });
       return response?.data?.data?.data || [];
     } catch (error) {
-      console.error('Error fetching service categories:', error);
+      console.error('Error fetching venue categories:', error);
       return [];
     }
   }, []);
 
   const getDynamicFormByCategory = useCallback(async (categoryId: string) => {
     try {
-      console.log('Fetching dynamic form for category:', categoryId);
-      const response = await api.get(`service-category/${categoryId}`, {
+      console.log('Fetching dynamic form for service category:', categoryId);
+      const response = await api.get(`service-category/user/${categoryId}`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -147,8 +147,13 @@ export function useVenueActions() {
       
       console.log('Service category API response:', response.data);
       
-      if (response?.data?.data?.form) {
-        const form = response.data.data.form;
+      // Handle different response structures: form, formData, or vendorCategory.form
+      const form = response?.data?.data?.form || 
+                   response?.data?.data?.formData || 
+                   response?.data?.data?.vendorCategory?.form ||
+                   response?.data?.data?.form;
+      
+      if (form && form.fields) {
         console.log('Form data from API:', form);
         
         // Map the form fields to include label and options properties

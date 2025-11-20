@@ -2,6 +2,7 @@
 
 ## ⚠️ Important: Development vs Production Server
 
+You're currently running the **production server** (`npm start`), which serves pre-built files from the `dist` folder. This won't reflect your code changes!
 
 For **local development with live changes**, you need to run the **development server**.
 

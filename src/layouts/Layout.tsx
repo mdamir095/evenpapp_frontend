@@ -86,7 +86,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             //  `}
             >
               <Header />
-              <div className="overflow-y-auto p-6 text-gray-800 mt-[71.2px] ">
+              <div className="overflow-y-auto p-6 text-gray-800 mt-[71.2px] w-full">
                 {children}
               </div>
             </main>

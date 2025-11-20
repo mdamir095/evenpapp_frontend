@@ -502,71 +502,34 @@ const VendorForm: React.FC = () => {
         fileType: file.type
       });
       
-      // Try vendors endpoint first, then fallback to venues endpoint (same pattern as profile/upload)
-      let response;
-      let endpointUsed = '/vendors/upload-image';
-      
-      try {
-        response = await api.post('/vendors/upload-image', formData, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-      } catch (vendorError: any) {
-        // If vendors endpoint fails with 500/404, try venues endpoint as fallback
-        if (vendorError?.response?.status === 500 || vendorError?.response?.status === 404) {
-          console.warn('Vendors upload endpoint failed, trying venues endpoint as fallback');
-          endpointUsed = '/venues/upload-image';
-          response = await api.post('/venues/upload-image', formData, {
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`,
-              'Content-Type': 'multipart/form-data',
-            },
-          });
-        } else {
-          throw vendorError;
-        }
-      }
+      // Use profile/upload endpoint (same as profile section) - it works for all image uploads
+      // This endpoint uploads to Supabase and works consistently
+      const response = await api.post('profile/upload', formData, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       
       console.log('Upload response:', response.data);
       
-      // Handle response structure - same as profile section and venue section
-      // Profile returns: response.data.data (string)
-      // Venue returns: { status: "OK", data: { imageUrl: "..." } }
-      let imageUrl: string | undefined;
+      // Handle response structure - same as profile section
+      // Profile/upload returns: response.data.data (string URL directly)
+      const fileUrl = response.data.data;
       
-      if (typeof response.data?.data === 'string') {
-        // Profile-style response: direct string URL
-        imageUrl = response.data.data;
-      } else if (response.data?.data?.imageUrl) {
-        // Venue-style response: nested object
-        imageUrl = response.data.data.imageUrl;
-      } else if (response.data?.data) {
-        imageUrl = response.data.data;
-      } else if (response.data?.url) {
-        imageUrl = response.data.url;
-      } else if (response.data?.imageUrl) {
-        imageUrl = response.data.imageUrl;
-      } else if (typeof response.data === 'string') {
-        imageUrl = response.data;
-      }
-      
-      // Ensure we got a valid Supabase URL
-      if (!imageUrl) {
-        console.error('Invalid response structure:', response.data);
-        throw new Error('Invalid response: No image URL returned from server');
+      if (!fileUrl) {
+        throw new Error('File URL not returned');
       }
       
       // Ensure fileUrl is a string (same as profile section)
-      const imageUrlString = typeof imageUrl === 'string' ? imageUrl : String(imageUrl);
+      const imageUrl = typeof fileUrl === 'string' ? fileUrl : String(fileUrl);
       
-      if (imageUrlString.startsWith('data:')) {
+      if (imageUrl.startsWith('data:')) {
         throw new Error('Invalid response: Received data URL instead of Supabase URL');
       }
       
-      console.log('Image uploaded successfully to Supabase:', imageUrlString);
-      return imageUrlString; // Return the Supabase URL
+      console.log('Image uploaded successfully to Supabase:', imageUrl);
+      return imageUrl; // Return the Supabase URL
     } catch (error: any) {
       console.error('Error uploading image to Supabase:', error);
       
@@ -592,7 +555,7 @@ const VendorForm: React.FC = () => {
         statusText: error?.response?.statusText,
         data: error?.response?.data,
         message: errorMessage,
-        endpoint: endpointUsed
+        endpoint: 'profile/upload'
       });
       
       throw new Error(errorMessage);

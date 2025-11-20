@@ -73,6 +73,7 @@ const AddVenueForm: React.FC = () => {
   const { getEnterpriseList } = useEnterpriseActions();
   const enterpriseState = useEnterprise();
   const [dynamicFormErrors, setDynamicFormErrors] = useState<Record<string, string>>({});
+  const [uploadingImages, setUploadingImages] = useState<Record<string, boolean>>({});
 
   const toast = useToast();
   const navigate = useNavigate();
@@ -122,6 +123,12 @@ const AddVenueForm: React.FC = () => {
     const timeout = setTimeout(async () => {
       try {
         setIsLoadingVenue(true);
+        
+        // Ensure enterprises are loaded for admin users before loading venue data
+        if (isUserSuperAdmin && !isEnterpriseUser) {
+          await getEnterpriseList(1, 100, '');
+        }
+        
         const response = await api.get(`${API_ROUTES.VENUE}/${id}`);
         if (response?.data?.data) {
           const venueData = response?.data?.data;
@@ -130,13 +137,70 @@ const AddVenueForm: React.FC = () => {
           setValue('name', venueData?.name || '');
           setValue('description', venueData?.description || '');
           setValue('serviceCategoryId', venueData?.serviceCategoryId || venueData?.categoryId || '');
+          
+          // Set enterprise values if available
+          if (venueData?.enterpriseId) {
+            setValue('enterpriseId', venueData.enterpriseId);
+          }
+          if (venueData?.enterpriseName) {
+            setValue('enterpriseName', venueData.enterpriseName);
+          }
 
           // Store venue data for later processing
           if (venueData?.formData?.fields) {
             setSelectedForm(venueData?.formData);
             
-            // Store the raw venue data for processing after form loads
-            setFormData(venueData?.formData?.fields || {});
+            // Extract actualValue from fields array and map to field IDs
+            const extractedData: Record<string, any> = {};
+            if (Array.isArray(venueData.formData.fields)) {
+              venueData.formData.fields.forEach((field: any) => {
+                if (field.actualValue !== undefined) {
+                  // Handle MultiImageUpload fields specially
+                  if (field.type === 'MultiImageUpload' && Array.isArray(field.actualValue)) {
+                    const transformedImages = field.actualValue.map((img: any) => {
+                      let imageUrl = '';
+                      
+                      // Safely extract URL from various possible structures
+                      if (typeof img === 'string') {
+                        imageUrl = img;
+                      } else if (img?.url?.imageUrl && typeof img.url.imageUrl === 'string') {
+                        // Handle nested structure: url.imageUrl
+                        imageUrl = img.url.imageUrl;
+                      } else if (img?.url?.data && typeof img.url.data === 'string') {
+                        imageUrl = img.url.data;
+                      } else if (img?.url && typeof img.url === 'string') {
+                        imageUrl = img.url;
+                      } else if (img?.preview && typeof img.preview === 'string') {
+                        imageUrl = img.preview;
+                      }
+                      
+                      // If the URL is relative, construct the full URL
+                      if (imageUrl && imageUrl.startsWith('/uploads/')) {
+                        const imageBaseUrl = import.meta.env.VITE_IMAGE_BASE_URL || 
+                          (import.meta.env.VITE_API_BASE_URL 
+                            ? import.meta.env.VITE_API_BASE_URL.replace('/api/v1/', '') 
+                            : 'http://localhost:10030');
+                        imageUrl = `${imageBaseUrl}${imageUrl}`;
+                      }
+                      
+                      return {
+                        id: img.id || `img_${Date.now()}_${Math.random()}`,
+                        name: img.name || 'image',
+                        url: imageUrl,
+                        uploaded: true // Mark as already uploaded
+                      };
+                    });
+                    extractedData[field.id] = transformedImages;
+                  } else {
+                    // Handle text, select, dropdown, and other field types
+                    // Store the actualValue directly
+                    extractedData[field.id] = field.actualValue;
+                  }
+                }
+              });
+            }
+            console.log('Extracted form data from venue:', extractedData);
+            setFormData(extractedData);
           }
         }
       } catch (error) {
@@ -148,25 +212,42 @@ const AddVenueForm: React.FC = () => {
     return () => clearTimeout(timeout); // cleanup
   }, [id, setValue]);
 
-  // Load dynamic form in edit mode and process venue data
+  // Load dynamic form in edit mode and process venue data (especially for MultiImageUpload fields)
   useEffect(() => {
     const loadDynamicFormInEditMode = async () => {
       if (id && getSelectedForm && getSelectedForm.fields && getSelectedForm.fields.length > 0) {
         console.log('Loading dynamic form for edit mode, form:', getSelectedForm);
+        console.log('Current formData:', formData);
         
-        // Process venue data after form is loaded
-        if (typeof formData === 'object' && !Array.isArray(formData)) {
-          const processedData: Record<string, any> = {};
+        // Process venue data after form is loaded - handle MultiImageUpload fields specially
+        if (typeof formData === 'object' && !Array.isArray(formData) && Object.keys(formData).length > 0) {
+          const processedData: Record<string, any> = { ...formData };
+          let hasChanges = false;
           
-          Object.entries(formData).forEach(([fieldName, value]) => {
+          // Process each field value, especially for MultiImageUpload
+          Object.entries(formData).forEach(([fieldId, value]) => {
             if (value !== undefined && value !== null) {
-              // Find the field in the loaded form structure by name
-              const matchingField = getSelectedForm.fields.find((f: any) => f.name === fieldName);
+              // Find the field in the loaded form structure by ID
+              const matchingField = getSelectedForm.fields.find((f: any) => f.id === fieldId);
               
               if (matchingField?.type === 'MultiImageUpload' && Array.isArray(value)) {
                 // Handle MultiImageUpload fields specially
                 const transformedImages = value.map((img: any) => {
-                  let imageUrl = img.url?.data || img.url || img;
+                  let imageUrl = '';
+                  
+                  // Safely extract URL from various possible structures
+                  if (typeof img === 'string') {
+                    imageUrl = img;
+                  } else if (img?.url?.imageUrl && typeof img.url.imageUrl === 'string') {
+                    // Handle nested structure: url.imageUrl
+                    imageUrl = img.url.imageUrl;
+                  } else if (img?.url?.data && typeof img.url.data === 'string') {
+                    imageUrl = img.url.data;
+                  } else if (img?.url && typeof img.url === 'string') {
+                    imageUrl = img.url;
+                  } else if (img?.preview && typeof img.preview === 'string') {
+                    imageUrl = img.preview;
+                  }
                   
                   // If the URL is relative, construct the full URL
                   if (imageUrl && imageUrl.startsWith('/uploads/')) {
@@ -185,22 +266,22 @@ const AddVenueForm: React.FC = () => {
                     uploaded: true // Mark as already uploaded
                   };
                 });
-                processedData[matchingField.id] = transformedImages;
-              } else if (matchingField) {
-                processedData[matchingField.id] = value;
-              } else {
-                // Fallback: use field name as key if no matching field found
-                processedData[fieldName] = value;
+                processedData[fieldId] = transformedImages;
+                hasChanges = true;
               }
             }
           });
           
-          console.log('Setting processed venue form data:', processedData);
-          setFormData(processedData);
+          // Only update if there were changes to prevent infinite loops
+          if (hasChanges) {
+            console.log('Setting processed venue form data:', processedData);
+            setFormData(processedData);
+          }
         }
       }
     };
     loadDynamicFormInEditMode();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, getSelectedForm]);
 
   // Watch for service category changes and load dynamic form
@@ -212,41 +293,95 @@ const AddVenueForm: React.FC = () => {
         console.log('Dynamic form loaded:', form);
         setSelectedForm(form);
         
-        // Reset dynamic form data when category changes
-        setFormData({});
-        setDynamicFormErrors({});
+        // Only reset dynamic form data when category changes in create mode (not edit mode)
+        // In edit mode, formData is already populated from the venue data
+        if (!id) {
+          setFormData({});
+          setDynamicFormErrors({});
+        }
       }
     };
     loadDynamicForm();
-  }, [watchedCategoryId]);
+  }, [watchedCategoryId, id]);
 
-  // Helper function to convert form data to FormData for binary uploads
+  // Helper function to convert form data to JSON format (no binary files)
   const createFormData = (data: VenueSchemaType) => {
-    const formDataObj = new FormData();
-
-    // Add basic venue data
-    formDataObj.append('name', data.name);
-    formDataObj.append('description', data.description || '');
-    formDataObj.append('serviceCategoryId', data.serviceCategoryId);
-    formDataObj.append('formId', getSelectedForm?.formId || '');
-    formDataObj.append('enterpriseId', data.enterpriseId || '');
-    formDataObj.append('enterpriseName', data.enterpriseName || '');
+    // Get formId from form's _id (from formData structure) or id or formId
+    const formId = getSelectedForm?._id || getSelectedForm?.id || getSelectedForm?.formId || '';
+    
+    const jsonData: any = {
+      name: data.name,
+      description: data.description || '',
+      serviceCategoryId: data.serviceCategoryId,
+      formId: formId,
+      enterpriseId: data.enterpriseId || '',
+      enterpriseName: data.enterpriseName || '',
+    };
 
     // Process dynamic form fields and handle images
     if (getSelectedForm && getSelectedForm.fields) {
       const processedFields = getSelectedForm.fields.map((field: any) => {
         const fieldValue = formData[field.id] || field.metadata?.defaultValue || '';
         
-        // Handle MultiImageUpload fields - extract File objects
+        // Handle MultiImageUpload fields - extract URLs only (not file names)
         if (field.type === 'MultiImageUpload' && Array.isArray(fieldValue)) {
-          // For MultiImageUpload, we'll append files separately and store metadata
+          // Extract only URLs from uploaded images (filter out images without URLs)
+          const uploadedImages = fieldValue
+            .filter((img: any) => {
+              // Only include images that have been uploaded (have a URL)
+              // Exclude images that only have file objects (not yet uploaded)
+              if (img.file && !img.url && !img.uploaded) {
+                return false; // Skip images that haven't been uploaded yet
+              }
+              
+              // Check if image has URL in any format
+              let hasUrl = false;
+              if (typeof img.url === 'string' && img.url.trim() !== '') {
+                hasUrl = true;
+              } else if (img.url?.imageUrl && typeof img.url.imageUrl === 'string' && img.url.imageUrl.trim() !== '') {
+                hasUrl = true;
+              } else if (img.uploaded && img.preview && typeof img.preview === 'string' && img.preview.startsWith('http')) {
+                // Only use preview if it's a full URL (not a data URL)
+                hasUrl = true;
+              }
+              
+              return hasUrl;
+            })
+            .map((img: any) => {
+              // Extract URL - handle both flat string and nested object formats
+              let imageUrl = '';
+              
+              // Priority: url (string) > url.imageUrl > preview (if it's a full URL)
+              if (typeof img.url === 'string' && img.url.trim() !== '') {
+                imageUrl = img.url.trim();
+              } else if (img.url?.imageUrl && typeof img.url.imageUrl === 'string' && img.url.imageUrl.trim() !== '') {
+                imageUrl = img.url.imageUrl.trim();
+              } else if (img.uploaded && img.preview && typeof img.preview === 'string' && img.preview.startsWith('http')) {
+                // Only use preview if it's a full URL (not a data URL from FileReader)
+                imageUrl = img.preview;
+              }
+              
+              // Ensure we have a valid URL (not a file name)
+              if (!imageUrl || imageUrl.startsWith('data:') || (!imageUrl.startsWith('http') && !imageUrl.startsWith('/'))) {
+                console.warn('Skipping image without valid URL:', img);
+                return null;
+              }
+              
+              // Return in the format expected by backend: nested url.imageUrl structure
+              // Set name to the URL instead of file name
+              return {
+                id: img.id,
+                name: imageUrl, // Use URL as name instead of file name
+                url: {
+                  imageUrl: imageUrl
+                }
+              };
+            })
+            .filter((img: any) => img !== null); // Remove any null entries
+          
           return {
             ...field,
-            actualValue: fieldValue.map((img: any) => ({
-              id: img.id,
-              name: img.name,
-              // Don't include the file object in JSON, it will be sent separately
-            }))
+            actualValue: uploadedImages
           };
         }
         
@@ -272,24 +407,10 @@ const AddVenueForm: React.FC = () => {
         updatedAt: new Date().toISOString()
       };
 
-      formDataObj.append('formData', JSON.stringify(formDataWithValues));
-
-      // Append image files separately with static parameter name
-      getSelectedForm.fields.forEach((field: any) => {
-        if (field.type === 'MultiImageUpload') {
-          const fieldValue = formData[field.id];
-          if (Array.isArray(fieldValue)) {
-            fieldValue.forEach((img: any) => {
-              if (img.file) {
-                formDataObj.append('images', img.file);
-              }
-            });
-          }
-        }
-      });
+      jsonData.formData = formDataWithValues;
     }
 
-    return formDataObj;
+    return jsonData;
   };
 
   const onSubmit = async (data: VenueSchemaType) => {
@@ -309,15 +430,52 @@ const AddVenueForm: React.FC = () => {
       toast.error('Need to filled mandatory fields.');
       return;
     }
+
+    // Check if any images are still uploading
+    const isUploading = Object.values(uploadingImages).some(uploading => uploading);
+    if (isUploading) {
+      toast.error('Please wait for images to finish uploading.');
+      return;
+    }
+
+    // Validate that all MultiImageUpload fields have URLs (not file names)
+    if (getSelectedForm && getSelectedForm.fields) {
+      for (const field of getSelectedForm.fields) {
+        if (field.type === 'MultiImageUpload') {
+          const fieldValue = formData[field.id];
+          if (Array.isArray(fieldValue) && fieldValue.length > 0) {
+            const imagesWithoutUrl = fieldValue.filter((img: any) => {
+              // Check if image has a file but no URL (not uploaded yet)
+              if (img.file && !img.url) {
+                return true;
+              }
+              // Check if URL is invalid (not a proper URL)
+              const url = typeof img.url === 'string' ? img.url : img.url?.imageUrl;
+              if (!url || url.startsWith('data:') || (!url.startsWith('http') && !url.startsWith('/'))) {
+                return true;
+              }
+              return false;
+            });
+            
+            if (imagesWithoutUrl.length > 0) {
+              toast.error(`Please wait for all images in "${field.name || field.label}" to finish uploading.`);
+              return;
+            }
+          }
+        }
+      }
+    }
+
     try {
-      // Create FormData for binary upload
-      const formDataObj = createFormData(data);
+      // Create JSON data (no binary files, only URLs)
+      const jsonData = createFormData(data);
+      console.log('Submitting venue data:', JSON.stringify(jsonData, null, 2));
 
       if (id) {
-        await updateVenue(id, formDataObj);
+        await updateVenue(id, jsonData);
         toast.success('Venue updated successfully');
       } else {
-        await addVenue(formDataObj);
+        await addVenue(jsonData);
         toast.success('Venue created successfully');
       }
       navigate(ROUTING.VENUE_MANAGEMENT);
@@ -345,7 +503,72 @@ const AddVenueForm: React.FC = () => {
     setDynamicFormErrors(errors);
     return isValid;
   };
+  // Helper function to upload a single image immediately
+  const uploadSingleImage = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+      const response = await api.post('/venues/upload-image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      return response.data.data; // Return the image URL
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  // Helper function to handle immediate image upload when images are selected
+  const handleImageUpload = async (fieldId: string, images: any[]) => {
+    setUploadingImages(prev => ({ ...prev, [fieldId]: true }));
+    
+    try {
+      const uploadedImages = await Promise.all(
+        images.map(async (img: any) => {
+          if (img.file && !img.url) {
+            // Upload new file
+            const url = await uploadSingleImage(img.file);
+            return {
+              ...img,
+              url: url,
+              uploaded: true
+            };
+          }
+          // Return existing image (already uploaded)
+          return {
+            ...img,
+            uploaded: true
+          };
+        })
+      );
+      
+      // Update the form data with uploaded images
+      setFormData(prev => ({
+        ...prev,
+        [fieldId]: uploadedImages
+      }));
+      
+    } catch (error) {
+      toast.error('Failed to upload images. Please try again.');
+    } finally {
+      setUploadingImages(prev => ({ ...prev, [fieldId]: false }));
+    }
+  };
+
   const handleFieldChange = (data: any, fieldId: any, value: any) => {
+    // Check if this is a MultiImageUpload field and handle upload immediately
+    if (data.type === 'MultiImageUpload' && Array.isArray(value)) {
+      // Check if there are any new files to upload
+      const hasNewFiles = value.some((img: any) => img.file && !img.url);
+      if (hasNewFiles) {
+        handleImageUpload(fieldId, value);
+        return; // handleImageUpload will update formData
+      }
+    }
+
     setFormData(prev => ({
       ...prev,
       [fieldId]: value
@@ -361,7 +584,7 @@ const AddVenueForm: React.FC = () => {
   };
   return (
     <Layout>
-      <h2 className="text-xl font-semibold mb-2">{id ? 'Edit Venue' : 'Create Venue'}</h2>
+      <h2 className="text-xl font-semibold mb-2">{id ? 'Edit Venue' : 'Create Venues'}</h2>
       <Breadcrumbs/>
       <div className="text-gray-800 shadow-sm mt-5 max-w-3xl border border-neutral-100 bg-white rounded-xl p-6">
         <p className="text-sm text-gray-500 mb-6">
@@ -399,25 +622,55 @@ const AddVenueForm: React.FC = () => {
                       name="enterpriseId"
                       control={control}
                       render={({ field, fieldState }) => {
+                        // Get enterprise from list or use form values if enterprise is not in list yet
                         const selectedEnterprise = enterpriseState.enterprises?.find((enterprise: any) =>
                           enterprise.id === field.value
-                        ) || null;
+                        );
+                        
+                        // If enterprise not found in list but we have enterpriseId and enterpriseName from form, create a temporary option
+                        const enterpriseName = methods.getValues('enterpriseName');
+                        const enterpriseId = field.value;
+                        
+                        // Build options list - include selected enterprise if not in list
+                        const enterpriseOptions = enterpriseState.enterprises?.map((enterprise: any) => ({
+                          label: enterprise.enterpriseName,
+                          value: enterprise.id,
+                        })) || [];
+                        
+                        // If we have an enterpriseId that's not in the list, add it
+                        if (enterpriseId && enterpriseName && !selectedEnterprise) {
+                          const existsInOptions = enterpriseOptions.some(opt => opt.value === enterpriseId);
+                          if (!existsInOptions) {
+                            enterpriseOptions.push({
+                              label: enterpriseName,
+                              value: enterpriseId,
+                            });
+                          }
+                        }
+                        
+                        // Determine selected value
+                        const selectedValue = selectedEnterprise 
+                          ? [{
+                              label: selectedEnterprise.enterpriseName,
+                              value: selectedEnterprise.id
+                            }]
+                          : (enterpriseId && enterpriseName 
+                            ? [{
+                                label: enterpriseName,
+                                value: enterpriseId
+                              }]
+                            : []);
+                        
                         return (
                           <SelectGroup
                             label="Select Enterprise"
-                            options={enterpriseState.enterprises?.map((enterprise: any) => ({
-                              label: enterprise.enterpriseName,
-                              value: enterprise.id,
-                            })) || []}
-                            value={selectedEnterprise ? [{
-                              label: selectedEnterprise.enterpriseName,
-                              value: selectedEnterprise.id
-                            }] : []}
+                            options={enterpriseOptions}
+                            value={selectedValue}
                             onChange={(selected) => {
                               const value = Array.isArray(selected) ? selected[0]?.value : '';
-                              const enterpriseName = Array.isArray(selected) ? selected[0]?.label : '';
+                              const name = Array.isArray(selected) ? selected[0]?.label : '';
                               field.onChange(value);
-                              methods.setValue('enterpriseName', enterpriseName);
+                              methods.setValue('enterpriseName', name);
                             }}
                             isMulti={false}
                             error={fieldState.error?.message}
@@ -462,24 +715,36 @@ const AddVenueForm: React.FC = () => {
                   <Controller
                     name="description"
                     control={control}
-                    render={({ field, fieldState }) => (
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Description
-                        </label>
-                        <Textarea
-                          id="description"
-                          rows={4}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-0 focus:ring-sky-500 focus:border-sky-500"
-                          placeholder="Enter venue description"
-                          value={field.value}
-                          onChange={field.onChange}
-                        />
-                        {fieldState.error?.message && (
-                          <span className="text-red-500 text-sm">{fieldState.error.message}</span>
-                        )}
-                      </div>
-                    )}
+                    render={({ field, fieldState }) => {
+                      const maxLength = 500;
+                      const currentLength = field.value?.length || 0;
+                      const remainingChars = maxLength - currentLength;
+                      
+                      return (
+                        <div>
+                          <div className="flex justify-between items-center mb-2">
+                            <label className="block text-sm font-semibold text-gray-700">
+                              Description
+                            </label>
+                            <span className={`text-xs ${remainingChars < 50 ? 'text-red-500' : 'text-gray-500'}`}>
+                              {currentLength}/{maxLength} characters
+                            </span>
+                          </div>
+                          <Textarea
+                            id="description"
+                            rows={4}
+                            maxLength={maxLength}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-0 focus:ring-sky-500 focus:border-sky-500"
+                            placeholder="Enter venue description"
+                            value={field.value || ''}
+                            onChange={field.onChange}
+                          />
+                          {fieldState.error?.message && (
+                            <span className="text-red-500 text-sm mt-1 block">{fieldState.error.message}</span>
+                          )}
+                        </div>
+                      );
+                    }}
                   />
                 </div>
                 {/* Dynamic Form Fields */}
@@ -491,15 +756,26 @@ const AddVenueForm: React.FC = () => {
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {console.log('Rendering fields:', getSelectedForm.fields)}
-                      {(getSelectedForm?.fields || []).map((field: DynamicFormField, index: number) => (
-                        <DynamicFieldForm
-                          key={index}
-                          field={field}
-                          value={formData[field.id] || ''}
-                          onChange={(value) => handleFieldChange(field, field.id, value)}
-                          error={dynamicFormErrors[field.id]}
-                        />
-                      ))}
+                      {console.log('Current formData for rendering:', formData)}
+                      {(getSelectedForm?.fields || []).map((field: DynamicFormField, index: number) => {
+                        const fieldValue = formData[field.id] || '';
+                        console.log(`Field ${field.name} (${field.id}): value =`, fieldValue);
+                        return (
+                        <div key={index}>
+                          <DynamicFieldForm
+                            field={field}
+                            value={fieldValue}
+                            onChange={(value) => handleFieldChange(field, field.id, value)}
+                            error={dynamicFormErrors[field.id]}
+                          />
+                          {field.type === 'MultiImageUpload' && uploadingImages[field.id] && (
+                            <div className="mt-2 text-sm text-sky-600">
+                              📤 Uploading images...
+                            </div>
+                          )}
+                        </div>
+                        );
+                      })}
                     </div>
                   </>    
                 ) : (
@@ -516,7 +792,7 @@ const AddVenueForm: React.FC = () => {
                 )}
                 <div className="flex gap-4 pt-6">
                   <Button type="submit" variant="primary" disabled={venueLoading}>
-                    {venueLoading ? 'Saving...' : id ? 'Update Venue' : 'Create Venue'}
+                    {venueLoading ? 'Saving...' : id ? 'Update Venue' : 'Create Venues'}
                   </Button>
                   <Button
                     type="button"

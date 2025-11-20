@@ -133,7 +133,6 @@ FRONTEND/src/
 - ✅ Cached route permission mappings
 
 ### Future Enhancements:
-- Real-time permission updates via WebSocket
 - Advanced caching strategies
 - Permission analytics and monitoring
 - Automated security testing

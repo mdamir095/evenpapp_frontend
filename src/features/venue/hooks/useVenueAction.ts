@@ -151,10 +151,17 @@ export function useVenueActions() {
         const form = response.data.data.form;
         console.log('Form data from API:', form);
         
-        // Map the form fields to include label property
+        // Map the form fields to include label and options properties
         const mappedFields = form.fields?.map((field: any) => ({
           ...field,
-          label: field.metadata?.label || field.name
+          label: field.metadata?.label || field.name,
+          // Map metadata.options to field.options for select/dropdown fields
+          options: field.metadata?.options 
+            ? field.metadata.options.map((option: string) => ({
+                label: option,
+                value: option
+              }))
+            : field.options || []
         })) || [];
         
         const mappedForm = {

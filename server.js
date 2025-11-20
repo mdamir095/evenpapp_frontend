@@ -12,16 +12,25 @@ const __dirname = dirname(__filename);
 
 const PORT = process.env.PORT || 5173;
 const distDir = join(__dirname, 'dist');
+const isProduction = process.env.NODE_ENV === 'production';
 
 // Backend API configuration - base URL without /api/v1 (we'll add it in the proxy)
 const API_BASE_URL = process.env.VITE_API_BASE_URL || 'https://evenpappbackend-production.up.railway.app';
 console.log(`Backend API Base URL: ${API_BASE_URL}`);
 
 // Check if dist directory exists
-if (!existsSync(distDir)) {
-  console.error(`Error: dist directory not found at ${distDir}`);
-  console.error('Please run "npm run build" first');
-  process.exit(1);
+const distExists = existsSync(distDir);
+if (!distExists) {
+  if (isProduction) {
+    console.error(`Error: dist directory not found at ${distDir}`);
+    console.error('Please run "npm run build" first');
+    process.exit(1);
+  } else {
+    console.warn(`⚠️  Warning: dist directory not found at ${distDir}`);
+    console.warn('📝 For local development with live reload, use: npm run dev');
+    console.warn('📦 To build for production, use: npm run build');
+    console.warn('🔧 This server will only proxy API requests. Frontend files will not be served.\n');
+  }
 }
 
 const MIME_TYPES = {
@@ -168,7 +177,6 @@ const server = createServer((req, res) => {
   // Log incoming requests immediately - this should always fire if requests reach the server
   const requestId = Date.now();
   console.log(`[${requestId}] [${new Date().toISOString()}] ${req.method} ${req.url}`);
-  console.log(`[${requestId}] Remote address: ${req.socket.remoteAddress}:${req.socket.remotePort}`);
   
   // Set timeout to prevent hanging connections
   req.setTimeout(30000, () => {
@@ -204,6 +212,17 @@ const server = createServer((req, res) => {
     }
 
     // Handle root path and all other requests
+    // If dist directory doesn't exist, only proxy API requests
+    if (!distExists) {
+      res.writeHead(503, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: 'Service Unavailable',
+        message: 'Frontend files not built. For local development, use "npm run dev" instead of "npm start".',
+        suggestion: 'Run "npm run dev" for development server with live reload, or "npm run build" to build for production.'
+      }));
+      return;
+    }
+
     let filePath = req.url === '/' ? '/index.html' : req.url;
     console.log(`[${requestId}] Resolved file path: ${filePath}`);
     
@@ -248,64 +267,48 @@ const server = createServer((req, res) => {
 
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
-  console.log(`Serving files from: ${distDir}`);
-  console.log(`PORT environment variable: ${process.env.PORT}`);
+  console.log(`PORT environment variable: ${process.env.PORT || 'default (5173)'}`);
   
   // Verify server is actually listening
   const address = server.address();
   console.log(`Server listening on:`, address);
   
-  // Verify index.html exists
-  const indexPath = join(distDir, 'index.html');
-  if (existsSync(indexPath)) {
-    console.log('✓ index.html found');
-    const stats = statSync(indexPath);
-    console.log(`  File size: ${stats.size} bytes`);
+  if (distExists) {
+    console.log(`Serving files from: ${distDir}`);
+    // Verify index.html exists
+    const indexPath = join(distDir, 'index.html');
+    if (existsSync(indexPath)) {
+      console.log('✓ index.html found');
+      const stats = statSync(indexPath);
+      console.log(`  File size: ${stats.size} bytes`);
+      
+      // Test that we can actually read the file
+      try {
+        const testContent = readFileSync(indexPath, 'utf8');
+        console.log(`✓ Successfully read index.html (${testContent.length} chars)`);
+      } catch (error) {
+        console.error('✗ Error reading index.html:', error);
+      }
+    } else {
+      console.error('✗ index.html NOT found in dist directory!');
+    }
+    console.log(`Main site available at: http://0.0.0.0:${PORT}/`);
   } else {
-    console.error('✗ index.html NOT found in dist directory!');
-  }
-  
-  // Test that we can actually read the file
-  try {
-    const testContent = readFileSync(indexPath, 'utf8');
-    console.log(`✓ Successfully read index.html (${testContent.length} chars)`);
-  } catch (error) {
-    console.error('✗ Error reading index.html:', error);
+    console.log('⚠️  Running in API proxy mode only (dist directory not found)');
+    console.log('📝 Use "npm run dev" for full development server');
   }
   
   // Log that server is ready to accept connections
   console.log('✓ Server is ready to accept connections');
   console.log('Waiting for incoming requests...');
   console.log(`Health check available at: http://0.0.0.0:${PORT}/health`);
-  console.log(`Main site available at: http://0.0.0.0:${PORT}/`);
+  console.log(`API proxy available at: http://0.0.0.0:${PORT}/api`);
 });
 
 server.on('error', (error) => {
   console.error('Server error:', error);
   console.error('Error details:', error.message, error.code);
   process.exit(1);
-});
-
-// Log when connections are established (even before requests)
-server.on('connection', (socket) => {
-  const connId = Date.now();
-  console.log(`[CONNECTION ${connId}] New connection from ${socket.remoteAddress}:${socket.remotePort}`);
-  
-  socket.on('error', (err) => {
-    console.error(`[CONNECTION ${connId}] Socket error:`, err.message);
-  });
-  
-  socket.on('close', (hadError) => {
-    console.log(`[CONNECTION ${connId}] Connection closed (hadError: ${hadError}) from ${socket.remoteAddress}:${socket.remotePort}`);
-  });
-  
-  socket.on('timeout', () => {
-    console.log(`[CONNECTION ${connId}] Socket timeout`);
-    socket.destroy();
-  });
-  
-  // Set socket timeout
-  socket.setTimeout(60000);
 });
 
 // Handle uncaught exceptions

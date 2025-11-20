@@ -29,7 +29,7 @@ export type InputProps = Omit<
 };
 
 
-export const Input: React.FC<InputProps> = ({
+export const Input = React.forwardRef<HTMLInputElement, InputProps>(({
   size = 'md',
   variant = 'outlined',
   className = '',
@@ -37,7 +37,7 @@ export const Input: React.FC<InputProps> = ({
   error,
   type = 'text',
   ...props
-}) => {
+}, ref) => {
   const isError = Boolean(error);
   const errorMessage = typeof error === 'string' ? error : null;
   
@@ -47,6 +47,7 @@ export const Input: React.FC<InputProps> = ({
   return (
     <>
       <input
+        ref={ref}
         {...props}
         type={isPassword ? (showPassword ? 'text' : 'password') : type}
         disabled={disabled}
@@ -74,6 +75,8 @@ export const Input: React.FC<InputProps> = ({
       )}
     </>
   );
-};
+});
+
+Input.displayName = 'Input';
 
 export default Input;

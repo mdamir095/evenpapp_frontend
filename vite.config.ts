@@ -29,10 +29,11 @@ export default defineConfig({
     open: false,
     proxy: {
       '/api': {
-        target: 'https://evenpappbackend-production.up.railway.app/api/v1',
+        // Use local backend by default, can be overridden with VITE_PROXY_TARGET env var
+        target: process.env.VITE_PROXY_TARGET || 'http://localhost:10030',
         changeOrigin: true,
-        secure: true,
-        rewrite: (path) => path.replace(/^\/api/, '/api')
+        secure: process.env.VITE_PROXY_TARGET?.startsWith('https') || false,
+        rewrite: (path) => path // Keep the path as-is since it already includes /api/v1
       }
     },
     fs: {

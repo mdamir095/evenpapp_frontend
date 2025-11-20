@@ -65,20 +65,33 @@ const DynamicFieldForm: React.FC<DynamicFieldRendererProps> = ({
 
         case 'select':
         case 'dropdown':
+            // Get options from field.options or field.metadata.options
+            const selectOptions = field.options || field.metadata?.options || [];
+            const normalizedSelectOptions = Array.isArray(selectOptions)
+                ? selectOptions.map(opt =>
+                    typeof opt === "string"
+                        ? { label: opt, value: opt }
+                        : opt
+                )
+                : [];
+            
+            // Find the matching option for the current value to get the correct label
+            const selectedOption = value 
+                ? normalizedSelectOptions.find(opt => opt.value === value || opt.label === value)
+                : null;
+            
+            const selectValue = selectedOption 
+                ? [{ label: selectedOption.label, value: selectedOption.value }]
+                : value 
+                    ? [{ label: String(value), value: String(value) }] 
+                    : [];
+            
             return (
                 <div className="col-span-1">
                     <SelectGroup
                         label={displayLabel}
-                        options={
-                            Array.isArray(field.options)
-                                ? field.options.map(opt =>
-                                    typeof opt === "string"
-                                        ? { label: opt, value: opt }
-                                        : opt
-                                )
-                                : []
-                        }
-                        value={value ? [{ label: value, value: value }] : []}
+                        options={normalizedSelectOptions}
+                        value={selectValue}
                         onChange={(selected) => {
                             const selectedValue = Array.isArray(selected) ? selected[0]?.value : '';
                             onChange(selectedValue);

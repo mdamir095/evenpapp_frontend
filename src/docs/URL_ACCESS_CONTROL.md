@@ -154,8 +154,7 @@ const canAccess = navigationGuard.canNavigateTo('/user-management');
 
 ## Future Enhancements / भविष्य की संवर्धन
 
-1. **Real-time permission updates**: WebSocket-based permission changes
-2. **Audit logging**: Track access attempts and permission violations
+1. **Audit logging**: Track access attempts and permission violations
 3. **Advanced caching**: Cache permission checks for performance
 4. **Role-based themes**: Different UI themes based on user roles
 5. **Permission analytics**: Track which features are most accessed

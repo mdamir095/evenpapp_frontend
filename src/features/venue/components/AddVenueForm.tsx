@@ -22,6 +22,7 @@ import { getUserDataFromStorage, isSuperAdmin } from '../../../utils/permissions
 import { useEnterpriseActions } from '../../enterprise/hooks/useEnterpriseActions';
 import { useEnterprise } from '../../enterprise/hooks/useEnterprise';
 import { createVenueSchema } from '../schemas/venue.schema';
+import { title } from 'process';
 type VenueFormValues = VenueSchemaType;
 
 // Helper function to validate dynamic field values
@@ -311,6 +312,7 @@ const AddVenueForm: React.FC = () => {
     
     const jsonData: any = {
       name: data.name,
+      title: data.name,
       description: data.description || '',
       serviceCategoryId: data.serviceCategoryId,
       formId: formId,

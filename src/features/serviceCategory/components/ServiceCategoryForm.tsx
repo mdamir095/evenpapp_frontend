@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { InputGroup, InputGroup } from '../../../components/molecules/InputGroup';
+import { InputGroup } from '../../../components/molecules/InputGroup';
 import { Button } from '../../../components/atoms/Button';
 import { FormError } from '../../../components/atoms/FormError';
 import { Form } from '../../../components/common/Form';
@@ -15,7 +15,6 @@ import Layout from '../../../layouts/Layout';
 import Breadcrumbs from '../../../components/common/BreadCrumb';
 import Modal from '../../../components/common/Modal';
 import { ConfirmModal } from '../../../components/molecules/ConfirmModal';
-import { Textarea } from '../../../components/atoms/Textarea';
 
 interface ServiceCategoryFormProps {
   editingServiceCategory?: any;
@@ -206,7 +205,7 @@ const CategoryForm: React.FC<ServiceCategoryFormProps> = ({ editingServiceCatego
                 schema={serviceCategorySchema}
                 onSubmit={onSubmit} className=' bg-white text-gray-800 '
               >
-                <div className="grid grid-cols-2 md:grid-row-1 gap-4">
+                <div className="grid grid-cols-1 md:grid-row-1 gap-4">
                   <InputGroup
                     label="Category Name"
                     name="name"
@@ -221,7 +220,7 @@ const CategoryForm: React.FC<ServiceCategoryFormProps> = ({ editingServiceCatego
                     id="description"
                     placeholder="Enter description"
                     autoComplete="description"
-                    error={errors?.description?.message}
+                    e error={errors?.description?.message}
                   />
                   <div className="border-b border-gray-200 my-3" />
                 </div>

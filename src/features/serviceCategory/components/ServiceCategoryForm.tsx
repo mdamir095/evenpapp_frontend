@@ -181,7 +181,7 @@ const CategoryForm: React.FC<ServiceCategoryFormProps> = ({ editingServiceCatego
         <Breadcrumbs />
       </div>
      
-        <div className="text-gray-800 shadow-sm mt-5 max-w-3xl border  border-neutral-100 bg-white rounded-xl p-6">
+        <div className="text-gray-800 shadow-sm mt-5 max-w-3xl border  border-neutral-100 bg-white rounded-xl p-6 min-w-full ">
             {/* <div className='flex justify-between items-center'>  
               <h2 className="text-xl font-semibold">{isEditMode ? 'Edit Service Category' : 'Create Service Category'}</h2>
               {isEditMode && isEmbedded && (
@@ -239,7 +239,7 @@ const CategoryForm: React.FC<ServiceCategoryFormProps> = ({ editingServiceCatego
                     {formInputsLoading ? (
                       <p className="text-sm text-gray-500">Loading inputs...</p>
                     ) : (Array.isArray(formInputs) && formInputs.length > 0 ? (
-                      <div className="divide-y border rounded-md">
+                      <div className="divide-y border-neutral-100 rounded-md">
                         {(formInputs as any[]).filter(Boolean).map((f: any) => {
                           const idVal = (f.id ?? f._id ?? f.key ?? `${f.label || 'input'}-${Math.random().toString(36).slice(2,8)}`) as string;
                           const active = (typeof f.active === 'boolean' ? f.active : (typeof f.isActive === 'boolean' ? f.isActive : undefined)) as boolean | undefined;

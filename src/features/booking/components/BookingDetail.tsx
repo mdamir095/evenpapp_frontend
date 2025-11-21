@@ -145,7 +145,7 @@ export const BookingDetail: React.FC = () => {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-start gap-4 flex-row">
+          <div className="flex items-start gap-4 flex-row justify-between">
             <div>
               <h2 className="text-xl font-semibold text-gray-800">
                 Booking Details

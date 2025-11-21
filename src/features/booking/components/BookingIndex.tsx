@@ -495,7 +495,7 @@ export const BookingIndex: React.FC = () => {
       case 'pending':
         return 'bg-yellow-100 text-yellow-600';
       case 'confirmed':
-        return 'bg-blue-100 text-blue-600';
+        return 'bg-sky-100 text-sky-600';
       case 'rejected':
         return 'bg-red-100 text-red-600';
       case 'cancelled':
@@ -542,8 +542,8 @@ export const BookingIndex: React.FC = () => {
                     <button
                       className={`pb-2 px-3  font-medium flex items-center cursor-pointer space-x-1 pt-2  ${
                         activeTab === tab.id
-                          ? 'border-b-2 border-blue-500 text-black bg-blue-100 rounded-md  font-semibold rounded-b-none'
-                          : 'text-gray-500 hover:text-black  hover:border-blue-500'
+                          ? 'border-b-2 border-sky-500 text-black bg-sky-100 rounded-md  font-semibold rounded-b-none'
+                          : 'text-gray-500 hover:text-black  hover:border-sky-500'
                       }`}
                       key={tab.id}
                       onClick={() => handleTabChange(tab.id)}
@@ -551,12 +551,12 @@ export const BookingIndex: React.FC = () => {
                       <span
                         className={`w-2 h-2 rounded-full ${
                           tab.id === 'confirmed'
-                            ? 'bg-blue-600'
+                            ? 'bg-sky-600'
                             : tab.id === 'pending'
                             ? 'bg-yellow-600'
                             : tab.id === 'rejected'
                             ? 'bg-red-600'
-                            : 'bg-blue-600'
+                            : 'bg-sky-600'
                         }`}
                       ></span>
                       <span className="font-medium">{tab.label}</span>
@@ -610,7 +610,7 @@ export const BookingIndex: React.FC = () => {
                       <tr>
                         <td colSpan={isAdmin ? 8 : 7} className="px-4 py-8 text-center text-gray-500">
                           <div className="flex items-center justify-center space-x-2">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-sky-600"></div>
                             <span>Loading bookings...</span>
                           </div>
                         </td>
@@ -618,7 +618,7 @@ export const BookingIndex: React.FC = () => {
                     ) : filteredBookings.length > 0 ? (
                       filteredBookings.map((booking: any, index) => (
                         <tr key={booking.id || booking.bookingId || index} className="hover:bg-gray-50 cursor-default">
-                          <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
+                          <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-sky-600">
                             {booking.bookingNumber || booking.bookingId || `BOKID-${Math.floor(Math.random() * 9999)}`}
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -674,7 +674,7 @@ export const BookingIndex: React.FC = () => {
                             <div className="flex items-center gap-2 flex-wrap">
                               <Button
                                 onClick={() => navigate(`/booking-management/${booking.bookingId || booking.id || booking.bookingNumber}`)}
-                                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs whitespace-nowrap flex items-center gap-1"
+                                className="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs whitespace-nowrap flex items-center gap-1"
                               >
                                 <Eye className="w-3 h-3" />
                                 View Details
@@ -717,7 +717,7 @@ export const BookingIndex: React.FC = () => {
                       // No bookings found message
                       <tr>
                         <td colSpan={isAdmin ? 8 : 7} className="px-4 py-8 text-center text-gray-500">
-                          <div className="flex flex-col items-center justify-center space-y-2">
+                          <div className="flex flex-col items-center justify-center space-y-2 min-h-[300px]">
                             <div className="text-gray-400">
                               <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -782,7 +782,7 @@ export const BookingIndex: React.FC = () => {
                       type="text"
                       value={quotationData.quotationTitle}
                       onChange={(e) => handleQuotationChange('quotationTitle', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                       placeholder="e.g., Wedding Photography Premium Package"
                     />
                   </div>
@@ -794,7 +794,7 @@ export const BookingIndex: React.FC = () => {
                       value={quotationData.description}
                       onChange={(e) => handleQuotationChange('description', e.target.value)}
                       rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                       placeholder="Explain your offer and services in detail..."
                     />
                   </div>
@@ -806,7 +806,7 @@ export const BookingIndex: React.FC = () => {
                       type="number"
                       value={quotationData.price}
                       onChange={(e) => handleQuotationChange('price', Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                       placeholder="0"
                       min="0"
                     />
@@ -819,7 +819,7 @@ export const BookingIndex: React.FC = () => {
                       value={quotationData.breakdownOfCharges}
                       onChange={(e) => handleQuotationChange('breakdownOfCharges', e.target.value)}
                       rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                       placeholder="Item 1: ₹1000&#10;Item 2: ₹2000&#10;Item 3: ₹1500"
                     />
                   </div>
@@ -831,7 +831,7 @@ export const BookingIndex: React.FC = () => {
                       type="number"
                       value={quotationData.discounts}
                       onChange={(e) => handleQuotationChange('discounts', Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                       placeholder="0"
                       min="0"
                     />
@@ -844,7 +844,7 @@ export const BookingIndex: React.FC = () => {
                       type="number"
                       value={quotationData.taxes}
                       onChange={(e) => handleQuotationChange('taxes', Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                       placeholder="0"
                       min="0"
                     />
@@ -854,7 +854,7 @@ export const BookingIndex: React.FC = () => {
                   <div className="pt-3 border-t border-gray-200">
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-semibold text-gray-900">Total Amount</span>
-                      <span className="text-lg font-bold text-blue-600">₹{quotationData.totalAmount.toLocaleString()}</span>
+                      <span className="text-lg font-bold text-sky-600">₹{quotationData.totalAmount.toLocaleString()}</span>
                     </div>
                   </div>
                 </div>

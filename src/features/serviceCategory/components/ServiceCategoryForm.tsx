@@ -225,7 +225,7 @@ const CategoryForm: React.FC<ServiceCategoryFormProps> = ({ editingServiceCatego
                       <h3 className="text-lg font-semibold text-gray-900">Booking Request Form inputs</h3>
                       <Button
                         type="button"
-                        variant="secondary"
+                        variant="primary"
                         onClick={() => setBookingFormModalOpen(true)}
                       >
                         + Add booking request form input
@@ -427,7 +427,7 @@ const BookingRequestFormModalBody: React.FC<{ categoryId: string; categoryName: 
         </div>
         {submitError && <FormError message={submitError} />}
         <div className="pt-2">
-          <Button type="submit" variant="secondary">Create Form Input</Button>
+          <Button type="submit" variant="primary">Create Form Input</Button>
         </div>
       </form>
     </FormProvider>

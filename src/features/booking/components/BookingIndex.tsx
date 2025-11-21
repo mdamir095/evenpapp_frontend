@@ -587,7 +587,7 @@ export const BookingIndex: React.FC = () => {
                   <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold w-[150px]">
                     Date & Time
                   </th>
-                  <th className="px-4 py-3 cursor-pointer border-b border-neutral-300 text-sm sm:text-base font-semibold w-[380px]">
+                  <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm sm:text-base font-semibold w-[380px]">
                     Specific Requirements
                   </th>
                   <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold w-[120px]">

@@ -128,15 +128,15 @@ export const BookingDetail: React.FC = () => {
     const statusLower = status?.toLowerCase() || '';
     switch (statusLower) {
       case 'pending':
-        return 'text-yellow-600';
+        return 'bg-yellow-100 text-yellow-600';
       case 'confirmed':
-        return 'text-sky-600';
+        return 'bg-sky-100 text-sky-600';
       case 'rejected':
-        return 'text-red-600';
+        return 'bg-red-100 text-red-600';
       case 'cancelled':
-        return 'text-gray-600';
+        return 'bg-gray-100 text-gray-600';
       default:
-        return 'text-gray-600';
+        return 'bg-gray-100 text-gray-600';
     }
   };
 

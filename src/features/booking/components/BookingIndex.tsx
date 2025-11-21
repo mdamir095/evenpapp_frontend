@@ -609,7 +609,7 @@ export const BookingIndex: React.FC = () => {
                     {bookingState.loading ? (
                       <tr>
                         <td colSpan={isAdmin ? 8 : 7} className="px-4 py-8 text-center text-gray-500">
-                          <div className="flex items-center justify-center space-x-2">
+                          <div className="flex items-center justify-center space-x-2 min-h-[300px]">
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-sky-600"></div>
                             <span>Loading bookings...</span>
                           </div>

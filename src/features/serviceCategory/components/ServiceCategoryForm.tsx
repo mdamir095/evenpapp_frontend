@@ -15,6 +15,7 @@ import Layout from '../../../layouts/Layout';
 import Breadcrumbs from '../../../components/common/BreadCrumb';
 import Modal from '../../../components/common/Modal';
 import { ConfirmModal } from '../../../components/molecules/ConfirmModal';
+import { Textarea } from '../../../components/atoms/Textarea';
 
 interface ServiceCategoryFormProps {
   editingServiceCategory?: any;
@@ -173,8 +174,13 @@ const CategoryForm: React.FC<ServiceCategoryFormProps> = ({ editingServiceCatego
   return ( 
       <>
       <Layout>
-        <h2 className="text-xl font-semibold mb-2">{id ? 'Edit Service Category' : 'Create Service Category'}</h2>
-        <Breadcrumbs/>
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold mb-2">
+        {id ? 'Edit Service Category' : 'Create Service Category'}
+        </h2>
+        <Breadcrumbs />
+      </div>
+     
         <div className="text-gray-800 shadow-sm mt-5 max-w-3xl border  border-neutral-100 bg-white rounded-xl p-6">
             {/* <div className='flex justify-between items-center'>  
               <h2 className="text-xl font-semibold">{isEditMode ? 'Edit Service Category' : 'Create Service Category'}</h2>
@@ -200,7 +206,7 @@ const CategoryForm: React.FC<ServiceCategoryFormProps> = ({ editingServiceCatego
                 schema={serviceCategorySchema}
                 onSubmit={onSubmit} className=' bg-white text-gray-800 '
               >
-                <div className="grid grid-cols-1 md:grid-row-1 gap-4">
+                <div className="grid grid-cols-2 md:grid-row-1 gap-4">
                   <InputGroup
                     label="Category Name"
                     name="name"
@@ -209,13 +215,12 @@ const CategoryForm: React.FC<ServiceCategoryFormProps> = ({ editingServiceCatego
                     autoComplete="category-name"
                     error={errors?.name?.message}
                   />
-                  <InputGroup
-                    label="Description"
-                    name="description"
+                  <Textarea
+                    {...methods.register('description')}
                     id="description"
                     placeholder="Enter description"
                     autoComplete="description"
-                    error={errors?.description?.message}
+                    className={errors?.description?.message ? "border-red-500" : ""}
                   />
                   <div className="border-b border-gray-200 my-3" />
                 </div>

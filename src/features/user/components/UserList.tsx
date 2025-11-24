@@ -12,12 +12,11 @@ import { X, User as UserIcon, Mail, Building, Phone, MapPin, CheckCircle, XCircl
 import type { TableColumn } from '../../../types/table';
 
 const UserList: React.FC = () => {
-  const { users = [], pagination, loading, roles, selectedUser: fullUserDetails } = useUser();
-  const { getUserList, removeUser, fetchRoles, resetUserPassword, updateUserStatus, blockUser, fetchUserById } = useUserActions();
+  const { users = [], pagination, loading, selectedUser: fullUserDetails } = useUser();
+  const { getUserList, removeUser, resetUserPassword, updateUserStatus, blockUser, fetchUserById } = useUserActions();
 
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedRole, setSelectedRole] = useState('');
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const navigate = useNavigate();
@@ -30,12 +29,11 @@ const UserList: React.FC = () => {
 
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
-      fetchRoles()
-      getUserList(currentPage, rowsPerPage, searchQuery,selectedRole);
+      getUserList(currentPage, rowsPerPage, searchQuery);
     }, 300); // debounce API call by 300ms
 
     return () => clearTimeout(delayDebounce);
-  }, [currentPage, searchQuery, selectedRole, rowsPerPage]);
+  }, [currentPage, searchQuery, rowsPerPage]);
 
 
 
@@ -45,7 +43,7 @@ const UserList: React.FC = () => {
       setShowDeleteModal(false);
       setSelectedUser(null);
       toast.success('User deleted successfully');
-      getUserList(currentPage, rowsPerPage, searchQuery, selectedRole); 
+      getUserList(currentPage, rowsPerPage, searchQuery); 
     }
   };
 
@@ -126,14 +124,14 @@ const UserList: React.FC = () => {
         onSearchChange={(q) => {
           setCurrentPage(1);
           setSearchQuery(q);
-          getUserList(1, rowsPerPage, q, selectedRole);
+          getUserList(1, rowsPerPage, q);
         }}
         total={pagination?.total ?? 0}
         currentPage={currentPage}
         rowsPerPage={rowsPerPage}
         onPageChange={(page) => {
           setCurrentPage(page);
-          getUserList(page, rowsPerPage, searchQuery, selectedRole);
+          getUserList(page, rowsPerPage, searchQuery);
         }}
         loading={loading}
         onRowAction={async (action, row) => {
@@ -151,7 +149,7 @@ const UserList: React.FC = () => {
             try {
               await updateUserStatus(row.id, true);
               toast.success('User activated successfully!');
-              getUserList(currentPage, rowsPerPage, searchQuery, selectedRole);
+              getUserList(currentPage, rowsPerPage, searchQuery);
             } catch (error: any) {
               toast.error(error.message || 'Failed to activate user');
             }
@@ -160,7 +158,7 @@ const UserList: React.FC = () => {
             try {
               await updateUserStatus(row.id, false);
               toast.success('User deactivated successfully!');
-              getUserList(currentPage, rowsPerPage, searchQuery, selectedRole);
+              getUserList(currentPage, rowsPerPage, searchQuery);
             } catch (error: any) {
               toast.error(error.message || 'Failed to deactivate user');
             }
@@ -169,7 +167,7 @@ const UserList: React.FC = () => {
             try {
               await blockUser(row.id, { isBlocked: true });
               toast.success('User blocked successfully!');
-              getUserList(currentPage, rowsPerPage, searchQuery, selectedRole);
+              getUserList(currentPage, rowsPerPage, searchQuery);
             } catch (error: any) {
               toast.error(error.message || 'Failed to block user');
             }
@@ -178,25 +176,16 @@ const UserList: React.FC = () => {
             try {
               await blockUser(row.id, { isBlocked: false });
               toast.success('User unblocked successfully!');
-              getUserList(currentPage, rowsPerPage, searchQuery, selectedRole);
+              getUserList(currentPage, rowsPerPage, searchQuery);
             } catch (error: any) {
               toast.error(error.message || 'Failed to unblock user');
             }
           }
         }}
-        rolesDropdown={{
-          roles: roles || [],
-          selectedRole: selectedRole,
-          onRoleChange: (val) => {
-            setSelectedRole(val);
-            setCurrentPage(1);
-            getUserList(1, rowsPerPage, searchQuery, val);
-          }
-        }}
         onRowsPerPageChange={(size) => {
           setRowsPerPage(size);
           setCurrentPage(1);
-          getUserList(1, size, searchQuery, selectedRole);
+          getUserList(1, size, searchQuery);
         }}
       />
 
@@ -382,10 +371,10 @@ const UserList: React.FC = () => {
                     (fullUserDetails.features && fullUserDetails.features.length > 0) ||
                     (fullUserDetails.roleIds && fullUserDetails.roleIds.length > 0)) && (
                     <div className="border-b border-gray-200 pb-4">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Roles & Permissions</h3>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">User Roles & Permissions</h3>
                       {fullUserDetails.roles && Array.isArray(fullUserDetails.roles) && fullUserDetails.roles.length > 0 && (
                         <div className="mb-4">
-                          <label className="text-sm font-medium text-gray-500">Roles</label>
+                          <label className="text-sm font-medium text-gray-500">Assigned Roles</label>
                           <div className="mt-2 flex flex-wrap gap-2">
                             {fullUserDetails.roles.map((role: any, index: number) => (
                               <span

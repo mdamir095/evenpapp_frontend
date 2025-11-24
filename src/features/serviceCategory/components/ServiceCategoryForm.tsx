@@ -173,8 +173,13 @@ const CategoryForm: React.FC<ServiceCategoryFormProps> = ({ editingServiceCatego
   return ( 
       <>
       <Layout>
-        <h2 className="text-xl font-semibold mb-2">{id ? 'Edit Service Category' : 'Create Service Category'}</h2>
-        <Breadcrumbs/>
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold mb-2">
+        {id ? 'Edit Service Category' : 'Create Service Category'}
+        </h2>
+        <Breadcrumbs />
+      </div>
+     
         <div className="text-gray-800 shadow-sm mt-5 max-w-3xl border  border-neutral-100 bg-white rounded-xl p-6">
             {/* <div className='flex justify-between items-center'>  
               <h2 className="text-xl font-semibold">{isEditMode ? 'Edit Service Category' : 'Create Service Category'}</h2>
@@ -209,13 +214,13 @@ const CategoryForm: React.FC<ServiceCategoryFormProps> = ({ editingServiceCatego
                     autoComplete="category-name"
                     error={errors?.name?.message}
                   />
-                  <InputGroup
+                  <InputGroup 
                     label="Description"
                     name="description"
                     id="description"
                     placeholder="Enter description"
                     autoComplete="description"
-                    error={errors?.description?.message}
+                    e error={errors?.description?.message}
                   />
                   <div className="border-b border-gray-200 my-3" />
                 </div>
@@ -225,7 +230,7 @@ const CategoryForm: React.FC<ServiceCategoryFormProps> = ({ editingServiceCatego
                       <h3 className="text-lg font-semibold text-gray-900">Booking Request Form inputs</h3>
                       <Button
                         type="button"
-                        variant="secondary"
+                        variant="primary"
                         onClick={() => setBookingFormModalOpen(true)}
                       >
                         + Add booking request form input
@@ -234,7 +239,7 @@ const CategoryForm: React.FC<ServiceCategoryFormProps> = ({ editingServiceCatego
                     {formInputsLoading ? (
                       <p className="text-sm text-gray-500">Loading inputs...</p>
                     ) : (Array.isArray(formInputs) && formInputs.length > 0 ? (
-                      <div className="divide-y border rounded-md">
+                      <div className="border-b border-gray-200 rounded-md">
                         {(formInputs as any[]).filter(Boolean).map((f: any) => {
                           const idVal = (f.id ?? f._id ?? f.key ?? `${f.label || 'input'}-${Math.random().toString(36).slice(2,8)}`) as string;
                           const active = (typeof f.active === 'boolean' ? f.active : (typeof f.isActive === 'boolean' ? f.isActive : undefined)) as boolean | undefined;
@@ -427,7 +432,7 @@ const BookingRequestFormModalBody: React.FC<{ categoryId: string; categoryName: 
         </div>
         {submitError && <FormError message={submitError} />}
         <div className="pt-2">
-          <Button type="submit" variant="secondary">Create Form Input</Button>
+          <Button type="submit" variant="primary">Create Form Input</Button>
         </div>
       </form>
     </FormProvider>

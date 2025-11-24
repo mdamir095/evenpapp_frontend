@@ -128,15 +128,15 @@ export const BookingDetail: React.FC = () => {
     const statusLower = status?.toLowerCase() || '';
     switch (statusLower) {
       case 'pending':
-        return 'text-yellow-600';
+        return 'bg-yellow-100 text-yellow-600 rounded-lg';
       case 'confirmed':
-        return 'text-sky-600';
+        return 'bg-sky-100 text-sky-600 rounded-lg';
       case 'rejected':
-        return 'text-red-600';
+        return 'bg-red-100 text-red-600 rounded-lg';
       case 'cancelled':
-        return 'text-gray-600';
+        return 'bg-gray-100 text-gray-600 rounded-lg';
       default:
-        return 'text-gray-600';
+        return 'bg-gray-100 text-gray-600 rounded-lg';
     }
   };
 
@@ -145,7 +145,7 @@ export const BookingDetail: React.FC = () => {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-start gap-4 flex-row">
+          <div className="flex items-start gap-4 flex-row justify-between w-full">
             <div>
               <h2 className="text-xl font-semibold text-gray-800">
                 Booking Details
@@ -178,8 +178,8 @@ export const BookingDetail: React.FC = () => {
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Status</label>
-                    <p className={`text-sm font-semibold mt-1 capitalize ${getStatusTextColor(booking.status || booking.bookingStatus || 'Pending')}`}>
+                    <label className="text-sm font-medium text-gray-500 block">Status</label>
+                    <p className={`text-sm font-semibold mt-1  inline-block capitalize ${getStatusTextColor(booking.status || booking.bookingStatus || 'Pending')}`}>
                       {booking.status || booking.bookingStatus || 'Pending'}
                     </p>
                   </div>

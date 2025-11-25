@@ -761,14 +761,14 @@ export const BookingIndex: React.FC = () => {
               onClick={(e) => e.stopPropagation()}
             >
               {/* Modal Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 shrink-0">
                 <h3 className="text-lg font-semibold text-gray-900">Event Quotation</h3>
-                <button
+                <Button
                   onClick={handleCancelQuotation}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
                 >
                   <X className="w-5 h-5" />
-                </button>
+                </Button>
               </div>
 
               {/* Modal Body */}

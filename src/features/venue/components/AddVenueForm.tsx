@@ -310,6 +310,11 @@ const AddVenueForm: React.FC = () => {
     // Get formId from form's _id (from formData structure) or id or formId
     const formId = getSelectedForm?._id || getSelectedForm?.id || getSelectedForm?.formId || '';
     
+    // Get user name for createdBy/updatedBy
+    const currentUserName = userData?.firstName && userData?.lastName 
+      ? `${userData.firstName} ${userData.lastName}`.trim()
+      : (userData as any)?.firstName || (userData as any)?.lastName || (userData as any)?.name || null;
+    
     const jsonData: any = {
       name: data.name,
       title: data.name,
@@ -319,6 +324,15 @@ const AddVenueForm: React.FC = () => {
       enterpriseId: data.enterpriseId || '',
       enterpriseName: data.enterpriseName || '',
     };
+
+    // Add createdBy when creating, updatedBy when updating
+    if (id) {
+      // Update mode - add updatedBy
+      jsonData.updatedBy = currentUserName;
+    } else {
+      // Create mode - add createdBy
+      jsonData.createdBy = currentUserName;
+    }
 
     // Process dynamic form fields and handle images
     if (getSelectedForm && getSelectedForm.fields) {
@@ -406,8 +420,8 @@ const AddVenueForm: React.FC = () => {
         key: getSelectedForm.key || '',
         isActive: true,
         isDeleted: false,
-        createdBy: 'system',
-        updatedBy: 'system',
+        createdBy: id ? (getSelectedForm.createdBy || currentUserName) : currentUserName, // Use existing createdBy in edit mode, or current user in create mode
+        updatedBy: id ? currentUserName : (getSelectedForm.updatedBy || currentUserName), // Use current user in edit mode
         createdAt: getSelectedForm.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };

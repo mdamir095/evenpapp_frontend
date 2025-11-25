@@ -431,6 +431,11 @@ const VendorFormWithLocation: React.FC = () => {
   const createFormData = (data: VendorSchemaType) => {
     const formData = new FormData();
 
+    // Get user name for createdBy/updatedBy
+    const currentUserName = userData?.firstName && userData?.lastName 
+      ? `${userData.firstName} ${userData.lastName}`.trim()
+      : (userData as any)?.firstName || (userData as any)?.lastName || (userData as any)?.name || '';
+
     // Add basic vendor data
     formData.append('name', data.name);
     formData.append('description', data.description || '');
@@ -438,6 +443,15 @@ const VendorFormWithLocation: React.FC = () => {
     formData.append('formId', dynamicForm?.formId || '');
     formData.append('enterpriseId', data.enterpriseId || '');
     formData.append('enterpriseName', data.enterpriseName || '');
+    
+    // Add createdBy when creating, updatedBy when updating
+    if (id) {
+      // Update mode - add updatedBy
+      formData.append('updatedBy', currentUserName);
+    } else {
+      // Create mode - add createdBy
+      formData.append('createdBy', currentUserName);
+    }
 
     // Process dynamic form fields and handle images
     if (dynamicForm && dynamicForm.fields) {
@@ -473,8 +487,8 @@ const VendorFormWithLocation: React.FC = () => {
         key: dynamicForm.key || '',
         isActive: true,
         isDeleted: false,
-        createdBy: 'system',
-        updatedBy: 'system',
+        createdBy: id ? (dynamicForm.createdBy || currentUserName) : currentUserName, // Use existing createdBy in edit mode, or current user in create mode
+        updatedBy: id ? currentUserName : (dynamicForm.updatedBy || currentUserName), // Use current user in edit mode
         createdAt: dynamicForm.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };

@@ -652,6 +652,11 @@ const VendorForm: React.FC = () => {
 
   // Helper function to convert form data to JSON format
   const createJsonData = (data: VendorSchemaType) => {
+    // Get user name for createdBy/updatedBy
+    const currentUserName = userData?.firstName && userData?.lastName 
+      ? `${userData.firstName} ${userData.lastName}`.trim()
+      : (userData as any)?.firstName || (userData as any)?.lastName || (userData as any)?.name || null;
+    
     const jsonData: any = {
       categoryId: data.serviceCategoryId,
       name: data.name,
@@ -660,6 +665,15 @@ const VendorForm: React.FC = () => {
       enterpriseId: data.enterpriseId || '',
       enterpriseName: data.enterpriseName || '',
     };
+
+    // Add createdBy when creating, updatedBy when updating
+    if (id) {
+      // Update mode - add updatedBy
+      jsonData.updatedBy = currentUserName;
+    } else {
+      // Create mode - add createdBy
+      jsonData.createdBy = currentUserName;
+    }
 
     // Process dynamic form fields (images are already uploaded)
     if (dynamicForm && dynamicForm.fields) {
@@ -757,8 +771,8 @@ const VendorForm: React.FC = () => {
         key: dynamicForm.key || '',
         isActive: true,
         isDeleted: false,
-        createdBy: 'system',
-        updatedBy: 'system',
+        createdBy: id ? (dynamicForm.createdBy || currentUserName) : currentUserName, // Use existing createdBy in edit mode, or current user in create mode
+        updatedBy: id ? currentUserName : (dynamicForm.updatedBy || currentUserName), // Use current user in edit mode
         createdAt: dynamicForm.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };

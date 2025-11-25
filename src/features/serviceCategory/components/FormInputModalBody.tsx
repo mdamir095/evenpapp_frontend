@@ -20,6 +20,7 @@ type FormInputSchemaType = z.infer<typeof formInputSchema>;
 interface FormInputModalBodyProps {
   categoryId: string;
   categoryName?: string;
+  category?: string;
   editingInput?: { id: string; label: string; active?: boolean; minrange?: number; maxrange?: number } | null;
   onCancel: () => void;
   onCreated: () => void;
@@ -27,6 +28,7 @@ interface FormInputModalBodyProps {
 
 const FormInputModalBody: React.FC<FormInputModalBodyProps> = ({
   categoryId,
+  category,
   editingInput,
   onCancel,
   onCreated,
@@ -53,7 +55,7 @@ const FormInputModalBody: React.FC<FormInputModalBodyProps> = ({
     let isMounted = true;
     const loadLabels = async () => {
       try {
-        const list = await getFormInputLabels();
+        const list = await getFormInputLabels(category);
         if (isMounted && Array.isArray(list)) {
           setLabelOptions(list);
         }
@@ -65,7 +67,7 @@ const FormInputModalBody: React.FC<FormInputModalBodyProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [getFormInputLabels]);
+  }, [getFormInputLabels, category]);
 
   const onSubmit = async (data: FormInputSchemaType) => {
     try {

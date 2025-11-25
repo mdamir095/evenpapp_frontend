@@ -889,6 +889,7 @@ const AddVenueForm: React.FC = () => {
                     <FormInputManager
                       categoryId={id}
                       categoryName={selectedCategoryName}
+                      category="event"
                       heading="Booking Request Form inputs"
                       addButtonLabel="+ Add booking request form input"
                       emptyStateMessage="No inputs added yet."

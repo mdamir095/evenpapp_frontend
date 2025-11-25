@@ -10,6 +10,7 @@ import FormInputModalBody from './FormInputModalBody';
 interface FormInputManagerProps {
   categoryId?: string;
   categoryName?: string;
+  category?: string;
   heading?: string;
   addButtonLabel?: string;
   emptyStateMessage?: string;
@@ -26,6 +27,7 @@ type InputSummary = {
 const FormInputManager: React.FC<FormInputManagerProps> = ({
   categoryId = '',
   categoryName = '',
+  category,
   heading = 'Form inputs',
   addButtonLabel = '+ Add form input',
   emptyStateMessage = 'No inputs added yet.',
@@ -157,6 +159,7 @@ const FormInputManager: React.FC<FormInputManagerProps> = ({
         <FormInputModalBody
           categoryId={categoryId}
           categoryName={categoryName}
+          category={category}
           onCancel={() => setShowModal(false)}
           onCreated={async () => {
             setShowModal(false);
@@ -177,6 +180,7 @@ const FormInputManager: React.FC<FormInputManagerProps> = ({
         <FormInputModalBody
           categoryId={categoryId}
           categoryName={categoryName}
+          category={category}
           editingInput={inputToEdit}
           onCancel={() => {
             setShowEditModal(false);

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { Form } from '../../../components/common/Form';
@@ -22,7 +22,7 @@ import { getUserDataFromStorage, isSuperAdmin } from '../../../utils/permissions
 import { useEnterpriseActions } from '../../enterprise/hooks/useEnterpriseActions';
 import { useEnterprise } from '../../enterprise/hooks/useEnterprise';
 import { createVenueSchema } from '../schemas/venue.schema';
-import { title } from 'process';
+import FormInputManager from '../../serviceCategory/components/FormInputManager';
 type VenueFormValues = VenueSchemaType;
 
 // Helper function to validate dynamic field values
@@ -65,7 +65,7 @@ const validateDynamicField = (field: DynamicFormField, value: any): string | und
 
 const AddVenueForm: React.FC = () => {
   const { id } = useParams();
-  const [selectedCategory, setSelectedCategory] = useState<any>([]);
+  const [serviceCategories, setServiceCategories] = useState<any[]>([]);
   const [getSelectedForm, setSelectedForm] = useState<any>();
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [isLoadingVenue, setIsLoadingVenue] = useState(false);
@@ -96,11 +96,11 @@ const AddVenueForm: React.FC = () => {
   const getCategoryList = async () => {
     try {
       const categories = await getServiceCategories();
-      setSelectedCategory(categories);
+      setServiceCategories(categories);
     } catch (error) {
-      setSelectedCategory([]);
+      setServiceCategories([]);
     }
-  }
+  };
 
   // Set default values
   const methods = useForm<VenueFormValues>({
@@ -116,6 +116,12 @@ const AddVenueForm: React.FC = () => {
 
   const { control, setValue, watch } = methods;
   const watchedCategoryId = watch('serviceCategoryId');
+
+  const selectedCategoryName = useMemo(() => {
+    if (!watchedCategoryId) return '';
+    const match = (serviceCategories || []).find((cat: any) => cat?.id === watchedCategoryId);
+    return match?.name || '';
+  }, [serviceCategories, watchedCategoryId]);
 
   // Load venue data when editing
   useEffect(() => {
@@ -765,20 +771,26 @@ const AddVenueForm: React.FC = () => {
                     name="serviceCategoryId"
                     control={control}
                     render={({ field, fieldState }) => {
-                      const selectedOption = (selectedCategory || []).find((opt: any) => opt?.id === field?.value) || null;
+                      const selectedOption = (serviceCategories || []).find((opt: any) => opt?.id === field?.value) || null;
                       return (
                         <>
                           <SelectGroup
                             label="Service Category"
-                            className='min-h-[363px] text-gray-800'
-                            options={(selectedCategory || []).map((cat: any) => ({
+                            className="min-h-[363px] text-gray-800"
+                            options={(serviceCategories || []).map((cat: any) => ({
                               label: cat?.name,
                               value: cat?.id,
                             }))}
-                            value={selectedOption ? [{
-                              label: selectedOption.name,
-                              value: selectedOption.id
-                            }] : []}
+                            value={
+                              selectedOption
+                                ? [
+                                    {
+                                      label: selectedOption.name,
+                                      value: selectedOption.id,
+                                    },
+                                  ]
+                                : []
+                            }
                             onChange={(selected) => {
                               const value = Array.isArray(selected) ? selected[0]?.value : '';
                               field.onChange(value);
@@ -871,6 +883,19 @@ const AddVenueForm: React.FC = () => {
                     )}
                   </div>
                 )}
+
+                {id && watchedCategoryId && (
+                  <div className="mt-8">
+                    <FormInputManager
+                      categoryId={id}
+                      categoryName={selectedCategoryName}
+                      heading="Booking Request Form inputs"
+                      addButtonLabel="+ Add booking request form input"
+                      emptyStateMessage="No inputs added yet."
+                    />
+                  </div>
+                )}
+
                 <div className="flex gap-4 pt-6">
                   <Button type="submit" variant="primary" disabled={venueLoading}>
                     {venueLoading ? 'Saving...' : id ? 'Update Venue' : 'Create Venues'}

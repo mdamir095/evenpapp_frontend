@@ -294,10 +294,10 @@ export const BookingManagement: React.FC = () => {
               <table className="min-w-full table-fixed">
                 <thead className="sticky top-0 z-10 divide-y divide-gray-200 text-left text-md bg-white">
                 <tr className='bg-neutral-100 font-norma'>
-                  <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold uppercase tracking-wider w-[120px]">
+                  <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold uppercase tracking-wider w-[150px]">
                     Booking ID
                   </th>
-                  <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold uppercase tracking-wider w-[150px]">
+                  <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold uppercase tracking-wider w-[250px]">
                     Event Type
                   </th>
                   <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold uppercase tracking-wider w-[200px]">

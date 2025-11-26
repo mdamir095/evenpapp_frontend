@@ -47,7 +47,7 @@ export interface TableComponentProps<T extends TableRow> {
   columns: TableColumn<T>[];
   data: T[];
   loading?: boolean;
-  
+  className?: string;
   // Actions
   onRowAction?: (action: TableAction, row: T) => void;
   onRowClick?: (row: T) => void;

@@ -119,7 +119,7 @@ const DynamicFormList: React.FC = () => {
   };
 
   const columns: TableColumn<FormRow>[] = [
-    { key: 'name', label: 'Name', width: 200, sortable: true, searchable: true },
+    { key: 'name', label: 'Name', width: 100, sortable: true, searchable: true },
     { 
       key: 'description', 
       label: 'Description', 
@@ -196,6 +196,7 @@ const DynamicFormList: React.FC = () => {
       <TableComponent<FormRow>
         heading={'Form Management'}
         columns={columns}
+        className='fromListTable'
         data={sanitizedUsers}
         onRowAction={handleAction}
         onRowClick={handleRowClick}

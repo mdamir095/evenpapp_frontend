@@ -304,7 +304,7 @@ const DynamicFormList: React.FC = () => {
                   {selectedFormDetails.fields && Array.isArray(selectedFormDetails.fields) && selectedFormDetails.fields.length > 0 && (
                     <div className="border-b border-gray-200 pb-4">
                       <h3 className="text-lg font-semibold text-gray-900 mb-4">Form Fields ({selectedFormDetails.fields.length})</h3>
-                      <div className="space-y-3 max-h-60 overflow-y-auto">
+                      <div className="space-y-3 ">
                         {selectedFormDetails.fields.map((field: any, index: number) => (
                           <div key={field.id || index} className="bg-gray-50 p-3 rounded-md border border-gray-200">
                             <div className="flex items-start justify-between">

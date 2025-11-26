@@ -598,6 +598,9 @@ export const BookingIndex: React.FC = () => {
                       Offer Status
                     </th>
                   )}
+                  <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold w-[200px]">
+                    Managed By
+                  </th>
                   <th className="px-4 py-3 cursor-pointer whitespace-nowrap border-b border-neutral-300 text-sm font-semibold w-[250px]">
                     Action
                   </th>
@@ -608,7 +611,7 @@ export const BookingIndex: React.FC = () => {
                   <>
                     {bookingState.loading ? (
                       <tr>
-                        <td colSpan={isAdmin ? 8 : 7} className="px-4 py-8 text-center text-gray-500">
+                        <td colSpan={isAdmin ? 9 : 8} className="px-4 py-8 text-center text-gray-500">
                           <div className="flex items-center justify-center space-x-2 min-h-[300px]">
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-sky-600"></div>
                             <span>Loading bookings...</span>
@@ -670,6 +673,16 @@ export const BookingIndex: React.FC = () => {
                               })()}
                             </td>
                           )}
+                          <td className="px-4 py-4 text-sm">
+                            <div className="text-sm">
+                              <div className="text-gray-900">
+                                <span className="font-medium">Created:</span> {booking.createdByName && booking.createdByName.trim() !== '' ? booking.createdByName : '---'}
+                              </div>
+                              <div className="text-gray-600 mt-1">
+                                <span className="font-medium">Updated:</span> {booking.updatedByName && booking.updatedByName.trim() !== '' ? booking.updatedByName : '---'}
+                              </div>
+                            </div>
+                          </td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             <div className="flex items-center gap-2 flex-wrap">
                               <Button
@@ -716,7 +729,7 @@ export const BookingIndex: React.FC = () => {
                     ) : (
                       // No bookings found message
                       <tr>
-                        <td colSpan={isAdmin ? 8 : 7} className="px-4 py-8 text-center text-gray-500">
+                        <td colSpan={isAdmin ? 9 : 8} className="px-4 py-8 text-center text-gray-500">
                           <div className="flex flex-col items-center justify-center space-y-2 min-h-[300px]">
                             <div className="text-gray-400">
                               <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">

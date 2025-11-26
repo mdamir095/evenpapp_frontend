@@ -215,6 +215,21 @@ export const BookingDetail: React.FC = () => {
                     </p>
                   </div>
                 ) : null}
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Created By</label>
+                    <p className="text-sm text-gray-900 mt-1">
+                      {booking.createdByName || '---'}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Updated By</label>
+                    <p className="text-sm text-gray-900 mt-1">
+                      {booking.updatedByName || '---'}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 

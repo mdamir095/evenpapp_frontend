@@ -127,6 +127,9 @@ export function useBookingActions() {
           specialRequests: booking.specialRequirement,
           // Type field
           type: booking.bookingType || booking.type,
+          // Created and updated by names
+          createdByName: booking.createdByName || null,
+          updatedByName: booking.updatedByName || null,
         }));
         
         

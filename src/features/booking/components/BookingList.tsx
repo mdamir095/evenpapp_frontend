@@ -37,6 +37,9 @@ interface BookingRow {
   amount: number;
   createdAt: string;
   assignedStaff?: string;
+  createdByName?: string | null;
+  updatedByName?: string | null;
+  managedBy?: string | null; // Placeholder for column key
 }
 
 export const BookingList: React.FC = () => {
@@ -62,19 +65,32 @@ export const BookingList: React.FC = () => {
   const { bookings = [], pagination, loading } = bookingState || {};
   
   // Helper function to map BookingType to BookingRow
-  const mapBookingToRow = (booking: any): BookingRow => ({
-    id: booking.id || booking.bookingId || '',
-    bookingNumber: booking.bookingNumber || booking.bookingId || '',
-    customerName: booking.customerName || booking.userName || booking.customer?.name || '',
-    customerEmail: booking.customerEmail || booking.userEmail || booking.customer?.email || '',
-    serviceName: booking.serviceName || booking.title || booking.services?.[0]?.name || '',
-    startDateTime: booking.eventDate || booking.startDateTime || booking.startTime || '',
-    endDateTime: booking.endDate || booking.endDateTime || booking.endTime || '',
-    status: booking.status || booking.bookingStatus || '',
-    amount: booking.amount || booking.price || 0,
-    createdAt: booking.createdAt || '',
-    assignedStaff: booking.assignedStaff || undefined,
-  });
+  const mapBookingToRow = (booking: any): BookingRow => {
+    // Handle empty strings - convert to null for display
+    const createdByName = booking.createdByName && booking.createdByName.trim() !== '' 
+      ? booking.createdByName 
+      : null;
+    const updatedByName = booking.updatedByName && booking.updatedByName.trim() !== '' 
+      ? booking.updatedByName 
+      : null;
+    
+    return {
+      id: booking.id || booking.bookingId || '',
+      bookingNumber: booking.bookingNumber || booking.bookingId || '',
+      customerName: booking.customerName || booking.userName || booking.customer?.name || '',
+      customerEmail: booking.customerEmail || booking.userEmail || booking.customer?.email || '',
+      serviceName: booking.serviceName || booking.title || booking.services?.[0]?.name || '',
+      startDateTime: booking.eventDate || booking.startDateTime || booking.startTime || '',
+      endDateTime: booking.endDate || booking.endDateTime || booking.endTime || '',
+      status: booking.status || booking.bookingStatus || '',
+      amount: booking.amount || booking.price || 0,
+      createdAt: booking.createdAt || '',
+      assignedStaff: booking.assignedStaff || undefined,
+      createdByName: createdByName,
+      updatedByName: updatedByName,
+      managedBy: 'managedBy', // Placeholder value for column key
+    };
+  };
   
   // Map bookings to table rows
   const tableData = bookings.map(mapBookingToRow);
@@ -243,6 +259,27 @@ export const BookingList: React.FC = () => {
       key: 'assignedStaff' as keyof BookingRow,
       label: 'Staff',
       render: (value: string | number | undefined, row: BookingRow, index: number) => value || '-',
+    },
+    {
+      key: 'managedBy' as keyof BookingRow,
+      label: 'Managed By',
+      sortable: false,
+      width: 200,
+      render: (value: string | number | undefined, row: BookingRow, index: number) => {
+        const createdByName = row.createdByName && row.createdByName.trim() !== '' ? row.createdByName : '---';
+        const updatedByName = row.updatedByName && row.updatedByName.trim() !== '' ? row.updatedByName : '---';
+        
+        return (
+          <div className="text-sm">
+            <div className="text-gray-900">
+              <span className="font-medium">Created:</span> {createdByName}
+            </div>
+            <div className="text-gray-600 mt-1">
+              <span className="font-medium">Updated:</span> {updatedByName}
+            </div>
+          </div>
+        );
+      },
     },
     {
       key: 'actions' as keyof BookingRow,
